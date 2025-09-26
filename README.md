@@ -14,6 +14,11 @@ Created with a lot of help from Copilot in VS Code, using GPT-5-Codex and Sonnet
 - **Monospace heuristics** – Detects Courier-style Word paragraphs and emits fenced code blocks.
 - **Bold span detection** – Upgrades inline `font-weight: bold` spans into Markdown `**strong**` text.
 
+## Screenshot
+
+![Screenshot of Markdown Clipboard Converter](docs/screenshot.png)
+
+
 ## Getting Started
 
 ### 1. Install dependencies
