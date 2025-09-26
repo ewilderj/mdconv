@@ -8,7 +8,7 @@ A Chrome browser extension that converts rich-text clipboard content into clean 
   - Provide a fast, reliable way to convert HTML clipboard content into Markdown.
   - Offer a simple popup UI that works without leaving the current tab.
   - Preserve semantic formatting (headings, lists, tables, code blocks) whenever possible.
-  - Persist the most recent conversion so users can reopen the popup without losing work.
+  - Automatically copy the converted Markdown back to the clipboard for a frictionless workflow.
 - **Non-Goals**
   - Editing Markdown within the extension.
   - Hosting or syncing conversions in the cloud.
@@ -26,18 +26,16 @@ Primary use cases:
 
 ## 4. User Stories
 - _As a_ technical writer, _I want_ to paste formatted text into the popup _so that_ I instantly get Markdown that I can paste into my docs.
-- _As a_ developer, _I want_ to copy the generated Markdown back to my clipboard _so that_ I can share it in chat or commit messages.
-- _As a_ frequent user, _I want_ the extension to remember my last conversion _so that_ I can revisit it without re-running the conversion.
+- _As a_ developer, _I want_ the extension to copy the generated Markdown back to my clipboard automatically _so that_ I can share it in chat or commit messages.
 - _As a_ privacy-conscious user, _I want_ all processing to stay local _so that_ I know my clipboard never leaves my machine.
 
 ## 5. Functional Requirements
 1. **Paste & Convert button** reads the clipboard and converts HTML to Markdown using Turndown.
 2. **Keyboard paste support** listens for `Cmd/Ctrl + V` within the popup and performs the same conversion.
-3. **Copy Markdown** button writes the Markdown back to the clipboard.
-4. **Clear output** button removes the current Markdown and disables the copy action.
+3. **Auto-copy on success** writes the newly generated Markdown back to the clipboard immediately after conversion.
+4. **Clear output** button removes the current Markdown and resets the status message.
 5. **Status messaging** communicates success or actionable errors (e.g., missing permissions, empty clipboard).
-6. **Persistence** stores the most recent Markdown in `chrome.storage.local` and restores it on popup load.
-7. **Permissions flow** requests `clipboardRead`, `clipboardWrite`, and `storage` permissions on demand.
+6. **Permissions flow** requests `clipboardRead` and `clipboardWrite` permissions on demand.
 
 ## 6. Non-Functional Requirements
 - **Performance**: Conversion should complete within 200 ms for typical clipboard payloads (<200 KB HTML).
@@ -49,7 +47,7 @@ Primary use cases:
 ## 7. Success Metrics
 - Time-to-convert: <1 second for 95% of conversions.
 - Copy success rate: >98% after granting permissions.
-- User retention proxy: ≥50% of sessions reuse the persisted Markdown (indicates repeat value).
+- Repeat usage rate: ≥60% of active users trigger the auto-copy workflow at least twice per week.
 - Error rate: <5% of conversions result in an error message.
 
 ## 8. Release Plan

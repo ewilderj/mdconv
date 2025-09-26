@@ -4,7 +4,6 @@ type Tone = "info" | "success" | "error";
 
 type UIRefs = {
   pasteButton: HTMLButtonElement;
-  copyButton: HTMLButtonElement;
   clearButton: HTMLButtonElement;
   output: HTMLTextAreaElement;
   status: HTMLElement;
@@ -173,44 +172,21 @@ function promoteWordHeadings(html: string): string {
 
 function queryUI(): UIRefs | null {
   const pasteButton = document.getElementById("pasteButton") as HTMLButtonElement | null;
-  const copyButton = document.getElementById("copyButton") as HTMLButtonElement | null;
   const clearButton = document.getElementById("clearButton") as HTMLButtonElement | null;
   const output = document.getElementById("output") as HTMLTextAreaElement | null;
   const status = document.getElementById("status");
 
-  if (!pasteButton || !copyButton || !clearButton || !output || !status) {
+  if (!pasteButton || !clearButton || !output || !status) {
     console.error("Popup UI failed to initialize: missing element(s)");
     return null;
   }
 
-  return { pasteButton, copyButton, clearButton, output, status };
+  return { pasteButton, clearButton, output, status };
 }
 
 function setStatus(refs: UIRefs, message: string, tone: Tone = "info") {
   refs.status.textContent = message;
   refs.status.dataset.tone = message ? tone : "";
-}
-
-async function saveLastValue(markdown: string) {
-  try {
-    await chrome?.storage?.local?.set?.({ lastMarkdown: markdown, updatedAt: Date.now() });
-  } catch (error) {
-    console.warn("Unable to persist last Markdown value", error);
-  }
-}
-
-async function restoreLastValue(refs: UIRefs) {
-  try {
-    const result = await chrome?.storage?.local?.get?.(["lastMarkdown"]);
-    const markdown = result?.lastMarkdown as string | undefined;
-    if (markdown) {
-      refs.output.value = markdown;
-      refs.copyButton.disabled = false;
-      setStatus(refs, "Restored previous conversion", "info");
-    }
-  } catch (error) {
-    console.warn("Unable to restore previous Markdown value", error);
-  }
 }
 
 async function writeClipboard(text: string) {
@@ -245,6 +221,19 @@ function convertClipboardPayload(html?: string, plain?: string) {
   return plain?.trim() ?? "";
 }
 
+async function presentMarkdown(refs: UIRefs, markdown: string, context: string) {
+  refs.output.value = markdown;
+  setStatus(refs, `${context}. Copying Markdown to clipboard…`, "info");
+
+  try {
+    await writeClipboard(markdown);
+    setStatus(refs, `${context}. Markdown copied to clipboard.`, "success");
+  } catch (error) {
+    console.error("Failed to copy markdown", error);
+    setStatus(refs, `${context}. Converted text but unable to copy automatically. Copy manually.`, "error");
+  }
+}
+
 async function handleConversion(refs: UIRefs) {
   setStatus(refs, "Reading clipboard…", "info");
   try {
@@ -254,14 +243,11 @@ async function handleConversion(refs: UIRefs) {
     if (!markdown) {
       setStatus(refs, "No convertible content found on the clipboard.", "error");
       refs.output.value = "";
-      refs.copyButton.disabled = true;
       return;
     }
 
-    refs.output.value = markdown;
-    refs.copyButton.disabled = false;
-    setStatus(refs, html ? "Converted rich text from clipboard." : "Converted plain text from clipboard.", "success");
-    await saveLastValue(markdown);
+  const context = html ? "Converted rich text from clipboard" : "Converted plain text from clipboard";
+    await presentMarkdown(refs, markdown, context);
   } catch (error) {
     console.error("Failed to convert clipboard contents", error);
     setStatus(refs, "Couldn't read the clipboard. Grant clipboard permissions and try again.", "error");
@@ -277,14 +263,11 @@ async function handlePasteEvent(refs: UIRefs, event: ClipboardEvent) {
   if (!markdown) {
     setStatus(refs, "Clipboard data was empty.", "error");
     refs.output.value = "";
-    refs.copyButton.disabled = true;
     return;
   }
 
-  refs.output.value = markdown;
-  refs.copyButton.disabled = false;
-  setStatus(refs, html ? "Converted pasted rich text." : "Converted pasted text.", "success");
-  await saveLastValue(markdown);
+  const context = html ? "Converted pasted rich text" : "Converted pasted text";
+  await presentMarkdown(refs, markdown, context);
 }
 
 async function init() {
@@ -293,7 +276,8 @@ async function init() {
     return;
   }
 
-  await restoreLastValue(refs);
+  refs.output.value = "";
+  setStatus(refs, "", "info");
 
   refs.pasteButton.addEventListener("click", () => {
     void handleConversion(refs);
@@ -303,21 +287,9 @@ async function init() {
     void handlePasteEvent(refs, event);
   });
 
-  refs.copyButton.addEventListener("click", async () => {
-    try {
-      await writeClipboard(refs.output.value);
-      setStatus(refs, "Markdown copied to clipboard.", "success");
-    } catch (error) {
-      console.error("Failed to copy markdown", error);
-      setStatus(refs, "Unable to copy Markdown. Check clipboard permissions.", "error");
-    }
-  });
-
   refs.clearButton.addEventListener("click", () => {
     refs.output.value = "";
-    refs.copyButton.disabled = true;
     setStatus(refs, "", "info");
-    void saveLastValue("");
   });
 }
 

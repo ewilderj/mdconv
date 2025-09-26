@@ -9,8 +9,7 @@
   },
   "permissions": [
     "clipboardRead",
-    "clipboardWrite",
-    "storage"
+    "clipboardWrite"
   ],
   "background": {
     "service_worker": "background.js",

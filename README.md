@@ -53,9 +53,8 @@ Runs TypeScript diagnostics without emitting bundled assets.
 ## Usage
 
 1. Click the extension icon to open the popup.
-2. Press **Paste & Convert** or simply press `Cmd/Ctrl + V` with formatted content on your clipboard.
-3. Review the Markdown output and press **Copy Markdown**.
-4. Paste the Markdown wherever you need it.
+2. Press **Paste & Convert** or press `Cmd/Ctrl + V` with formatted content on your clipboard.
+3. The Markdown appears in the output area and is automatically copied back to your clipboard so you can paste it wherever it's needed.
 
 > **Clipboard permissions**: Chrome will prompt for clipboard permissions when first reading or writing. Accept the prompt so the extension can function correctly.
 
