@@ -54,14 +54,14 @@ npm run build
 
 The compiled assets are emitted to `dist/`.
 
-### 3. Load the unpacked extension in Chrome
+### 4. Load the unpacked extension in Chrome
 
 1. Open `chrome://extensions` in your browser.
 2. Toggle **Developer mode** on (top-right switch).
 3. Click **Load unpacked** and choose the `dist` folder.
 4. The “Markdown Clipboard Converter” icon will appear in the toolbar.
 
-### 4. Load the unpacked extension in Chrome or Edge
+### 5. Load the unpacked extension in Chrome or Edge
 
 **For Chrome:**
 1. Open `chrome://extensions` in your browser.
@@ -79,7 +79,7 @@ The compiled assets are emitted to `dist/`.
 - Click the puzzle piece icon (🧩) in the toolbar, then click the pin icon next to "Markdown Clipboard Converter"
 - **Edge**: Click the puzzle piece icon (🧩) in the toolbar, then click the pin icon next to "Markdown Clipboard Converter"
 
-### 5. (Optional) Start a development watch task
+### 6. (Optional) Start a development watch task
 
 ```bash
 npm run dev
@@ -87,7 +87,7 @@ npm run dev
 
 This runs esbuild in watch mode and mirrors static assets into `dist/` whenever they change.
 
-### 6. (Optional) Type-check only
+### 7. (Optional) Type-check only
 
 ```bash
 npm run typecheck
