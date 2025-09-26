@@ -32,6 +32,12 @@ const DEFAULT_IMAGE_CONFIG: ImageHandlingConfig = {
   maxDataURLSize: 1024 * 1024, // 1MB limit for data URL embedding
 };
 
+// Image placeholder constants
+const IMAGE_PLACEHOLDERS = {
+  NOT_AVAILABLE: "image-not-available",
+  DATA_URL_TOO_LARGE: "data-url-too-large",
+} as const;
+
 // Image handling utilities
 function blobToDataURL(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -148,14 +154,14 @@ turndown.addRule('image', {
         return `![${alt}](${src})`;
       } else {
         // Data URL too large or config says not to embed
-        return `![${alt}](data-url-too-large)`;
+        return `![${alt}](${IMAGE_PLACEHOLDERS.DATA_URL_TOO_LARGE})`;
       }
     } else if (src) {
       // Relative or other URLs - preserve as-is
       return `![${alt}](${src})`;
     } else {
       // No src attribute - create placeholder
-      return `![${alt}](image-not-available)`;
+      return `![${alt}](${IMAGE_PLACEHOLDERS.NOT_AVAILABLE})`;
     }
   }
 });
@@ -782,7 +788,7 @@ async function convertClipboardPayload(data: ClipboardData, config: ImageHandlin
         if (shouldEmbedDataURL(dataURL, config)) {
           img.src = dataURL;
         } else {
-          img.src = 'data-url-too-large';
+          img.src = IMAGE_PLACEHOLDERS.DATA_URL_TOO_LARGE;
         }
         
         doc.body?.appendChild(img);
