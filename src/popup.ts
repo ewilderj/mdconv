@@ -17,6 +17,21 @@ const turndown = new TurndownService({
 
 turndown.keep(["pre", "code"]);
 
+const MONOSPACE_FONT_NAMES = new Set(
+  [
+    "courier",
+    "courier new",
+    "consolas",
+    "lucida console",
+    "menlo",
+    "monaco",
+    "source code pro",
+    "fira code",
+    "inconsolata",
+    "ubuntu mono",
+  ].map((name) => name.toLowerCase()),
+);
+
 function clampHeading(level: number | null | undefined): number | null {
   if (!level || Number.isNaN(level)) {
     return null;
@@ -140,7 +155,182 @@ function detectWordHeadingLevel(element: HTMLElement): number | null {
   return null;
 }
 
-function promoteWordHeadings(html: string): string {
+function normalizeFontTokens(fontFamily: string | null | undefined): string[] {
+  if (!fontFamily) {
+    return [];
+  }
+  return fontFamily
+    .split(",")
+    .map((token) => token.replace(/["']/g, "").trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function isMonospaceFontFamily(fontFamily: string | null | undefined): boolean {
+  const tokens = normalizeFontTokens(fontFamily);
+  return tokens.some((token) => MONOSPACE_FONT_NAMES.has(token));
+}
+
+function readInlineFontFamily(element: HTMLElement): string | null {
+  const inline = element.style?.fontFamily;
+  if (inline && inline.trim()) {
+    return inline;
+  }
+
+  const faceAttr = element.getAttribute("face");
+  if (faceAttr && faceAttr.trim()) {
+    return faceAttr;
+  }
+
+  const styleAttr = element.getAttribute("style");
+  if (styleAttr) {
+    const match = styleAttr.match(/font-family\s*:\s*([^;]+)/i);
+    if (match?.[1]) {
+      return match[1];
+    }
+  }
+
+  return null;
+}
+
+function promoteWordHeadingsInPlace(doc: Document) {
+  const paragraphs = Array.from(doc.body.querySelectorAll("p"));
+  for (const paragraph of paragraphs) {
+    const level = detectWordHeadingLevel(paragraph);
+    if (!level) {
+      continue;
+    }
+    const headingTag = `h${level}` as keyof HTMLElementTagNameMap;
+    const heading = doc.createElement(headingTag);
+    heading.innerHTML = paragraph.innerHTML;
+    if (paragraph.id) {
+      heading.id = paragraph.id;
+    }
+    paragraph.replaceWith(heading);
+  }
+}
+
+function shouldTransformToCodeBlock(element: HTMLElement): boolean {
+  if (!element.textContent || !element.textContent.trim()) {
+    return false;
+  }
+
+  if (element.closest("pre, code")) {
+    return false;
+  }
+
+  let encounteredMonospace = isMonospaceFontFamily(readInlineFontFamily(element));
+  const walker = element.ownerDocument.createTreeWalker(element, NodeFilter.SHOW_ELEMENT);
+
+  while (walker.nextNode()) {
+    const current = walker.currentNode as HTMLElement;
+
+    if (current === element) {
+      continue;
+    }
+
+    if (current.tagName === "PRE" || current.tagName === "CODE") {
+      return false;
+    }
+
+    const fontFamily = readInlineFontFamily(current);
+    if (!fontFamily) {
+      continue;
+    }
+
+    if (isMonospaceFontFamily(fontFamily)) {
+      encounteredMonospace = true;
+      continue;
+    }
+
+    return false;
+  }
+
+  return encounteredMonospace;
+}
+
+function transformMonospaceBlocks(doc: Document) {
+  const blocks = Array.from(doc.body.querySelectorAll<HTMLElement>("p, div"));
+  for (const block of blocks) {
+    if (!shouldTransformToCodeBlock(block)) {
+      continue;
+    }
+
+    const pre = doc.createElement("pre");
+    const code = doc.createElement("code");
+    const text = extractMonospaceBlockText(block);
+    code.textContent = text;
+    pre.appendChild(code);
+
+    if (block.id) {
+      pre.id = block.id;
+    }
+
+    block.replaceWith(pre);
+  }
+}
+
+function extractMonospaceBlockText(element: HTMLElement): string {
+  const innerText = (element as HTMLElement).innerText;
+  const raw = innerText && innerText.length > 0 ? innerText : element.textContent ?? "";
+  return raw
+    .replace(/\u00a0/g, " ")
+    .replace(/\r\n?/g, "\n")
+    .replace(/\u2028|\u2029/g, "\n");
+}
+
+function isBoldFontWeight(fontWeight: string | null | undefined): boolean {
+  if (!fontWeight) {
+    return false;
+  }
+  const normalized = fontWeight.trim().toLowerCase();
+  if (!normalized) {
+    return false;
+  }
+  if (normalized === "bold" || normalized === "bolder") {
+    return true;
+  }
+  const numeric = parseInt(normalized, 10);
+  return !Number.isNaN(numeric) && numeric >= 600;
+}
+
+function spanStyleIndicatesBold(span: HTMLSpanElement): boolean {
+  if (isBoldFontWeight(span.style?.fontWeight)) {
+    return true;
+  }
+  const styleAttr = span.getAttribute("style") ?? "";
+  return /font-weight\s*:\s*(bold|[6-9]\d\d)/i.test(styleAttr);
+}
+
+function convertBoldSpansToStrong(doc: Document) {
+  const spans = Array.from(doc.body.querySelectorAll<HTMLSpanElement>("span"));
+  for (const span of spans) {
+    if (span.closest("pre, code")) {
+      continue;
+    }
+    const parentTag = span.parentElement?.tagName;
+    if (parentTag === "STRONG" || parentTag === "B") {
+      continue;
+    }
+    if (!spanStyleIndicatesBold(span)) {
+      continue;
+    }
+
+    const strong = doc.createElement("strong");
+    strong.innerHTML = span.innerHTML;
+    for (const attribute of span.getAttributeNames()) {
+      if (attribute.toLowerCase() === "style") {
+        continue;
+      }
+      const value = span.getAttribute(attribute);
+      if (value !== null) {
+        strong.setAttribute(attribute, value);
+      }
+    }
+    span.replaceWith(strong);
+  }
+}
+
+function normalizeWordHtml(html: string): string {
   try {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, "text/html");
@@ -148,24 +338,13 @@ function promoteWordHeadings(html: string): string {
       return html;
     }
 
-    const paragraphs = Array.from(doc.body.querySelectorAll("p"));
-    for (const paragraph of paragraphs) {
-      const level = detectWordHeadingLevel(paragraph);
-      if (!level) {
-        continue;
-      }
-      const headingTag = `h${level}` as keyof HTMLElementTagNameMap;
-      const heading = doc.createElement(headingTag);
-      heading.innerHTML = paragraph.innerHTML;
-      if (paragraph.id) {
-        heading.id = paragraph.id;
-      }
-      paragraph.replaceWith(heading);
-    }
+    promoteWordHeadingsInPlace(doc);
+    transformMonospaceBlocks(doc);
+    convertBoldSpansToStrong(doc);
 
     return doc.body.innerHTML;
   } catch (error) {
-    console.warn("Failed to normalize Word headings", error);
+    console.warn("Failed to normalize Word markup", error);
     return html;
   }
 }
@@ -201,7 +380,8 @@ async function readClipboardAsHtml(): Promise<{ html?: string; plain?: string }>
         if (item.types.includes("text/html")) {
           const blob = await item.getType("text/html");
           const html = await blob.text();
-          return { html, plain: await item.getType("text/plain").then((b) => b.text()).catch(() => "") };
+          const plain = await item.getType("text/plain").then((b) => b.text()).catch(() => "");
+          return { html, plain };
         }
       }
     } catch (error) {
@@ -215,7 +395,7 @@ async function readClipboardAsHtml(): Promise<{ html?: string; plain?: string }>
 
 function convertClipboardPayload(html?: string, plain?: string) {
   if (html && html.trim()) {
-    const normalized = promoteWordHeadings(html);
+    const normalized = normalizeWordHtml(html);
     return turndown.turndown(normalized);
   }
   return plain?.trim() ?? "";
@@ -246,7 +426,7 @@ async function handleConversion(refs: UIRefs) {
       return;
     }
 
-  const context = html ? "Converted rich text from clipboard" : "Converted plain text from clipboard";
+    const context = html ? "Converted rich text from clipboard" : "Converted plain text from clipboard";
     await presentMarkdown(refs, markdown, context);
   } catch (error) {
     console.error("Failed to convert clipboard contents", error);

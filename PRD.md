@@ -36,6 +36,7 @@ Primary use cases:
 4. **Clear output** button removes the current Markdown and resets the status message.
 5. **Status messaging** communicates success or actionable errors (e.g., missing permissions, empty clipboard).
 6. **Permissions flow** requests `clipboardRead` and `clipboardWrite` permissions on demand.
+7. **Word normalization** upgrades detected headings, monospace paragraphs, and bold spans so the resulting Markdown preserves intent.
 
 ## 6. Non-Functional Requirements
 - **Performance**: Conversion should complete within 200 ms for typical clipboard payloads (<200 KB HTML).

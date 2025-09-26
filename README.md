@@ -6,10 +6,11 @@ A Chrome extension that transforms rich text from your clipboard into polished M
 
 - **One-click conversion** – Read HTML from the clipboard and convert it to Markdown using [Turndown](https://github.com/mixmark-io/turndown).
 - **Smart fallback** – Gracefully handles plain text when no rich content is available.
-- **Clipboard round-trip** – Quickly copy the generated Markdown back to the clipboard.
-- **Auto-restore** – Recalls your most recent conversion via `chrome.storage`.
+- **Automatic copy-back** – Immediately writes the generated Markdown to your clipboard after each conversion.
 - **Live paste listener** – Supports keyboard pastes (`Cmd/Ctrl + V`) directly inside the popup.
 - **Word-aware headings** – Promotes Microsoft Word clipboard headings so Markdown keeps its structure.
+- **Monospace heuristics** – Detects Courier-style Word paragraphs and emits fenced code blocks.
+- **Bold span detection** – Upgrades inline `font-weight: bold` spans into Markdown `**strong**` text.
 
 ## Getting Started
 
