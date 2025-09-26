@@ -17,6 +17,56 @@ const turndown = new TurndownService({
 
 turndown.keep(["pre", "code"]);
 
+// Custom rule to handle paragraphs inside list items (Word behavior)
+turndown.addRule('listParagraph', {
+  filter: function(node, options) {
+    return !!(node.nodeName === 'P' && node.parentNode && node.parentNode.nodeName === 'LI');
+  },
+  replacement: function(content) {
+    return content;
+  }
+});
+
+// Custom list processing to fix spacing issues
+turndown.addRule('listItem', {
+  filter: 'li',
+  replacement: function(content, node, options) {
+    content = content
+      .replace(/^\s+/, '') // Remove leading whitespace
+      .replace(/\s+$/, '') // Remove trailing whitespace
+      .replace(/\n/gm, '\n    '); // Indent wrapped lines properly
+    
+    const bullet = options.bulletListMarker || '*';
+    return bullet + ' ' + content + '\n';
+  }
+});
+
+// Override list rules to process all items at once
+turndown.addRule('list', {
+  filter: ['ul', 'ol'],
+  replacement: function(content, node, options) {
+    const element = node as HTMLElement;
+    const listItems = Array.from(element.querySelectorAll('li'));
+    const isOrdered = element.tagName.toLowerCase() === 'ol';
+    
+    const processedItems = listItems.map((li, index) => {
+      let itemContent = turndown.turndown(li.innerHTML)
+        .replace(/^\s+/, '') // Remove leading whitespace
+        .replace(/\s+$/, '') // Remove trailing whitespace
+        .replace(/\n/gm, '\n    '); // Indent wrapped lines
+      
+      if (isOrdered) {
+        return `${index + 1}. ${itemContent}`;
+      } else {
+        const bullet = options.bulletListMarker || '*';
+        return `${bullet} ${itemContent}`;
+      }
+    });
+    
+    return processedItems.join('\n') + '\n';
+  }
+});
+
 const MONOSPACE_FONT_NAMES = new Set(
   [
     "courier",
@@ -395,6 +445,85 @@ function convertBoldSpansToStrong(doc: Document) {
   }
 }
 
+function consolidateWordLists(doc: Document) {
+  const listContainers = Array.from(doc.body.querySelectorAll<HTMLElement>("div.ListContainerWrapper"));
+  
+  if (listContainers.length === 0) {
+    return;
+  }
+
+  // Group consecutive list containers by list type and list ID
+  const groups: HTMLElement[][] = [];
+  let currentGroup: HTMLElement[] = [];
+  let lastListId: string | null = null;
+  let lastListType: string | null = null;
+
+  for (const container of listContainers) {
+    const list = container.querySelector("ul, ol") as HTMLElement;
+    if (!list) {
+      continue;
+    }
+
+    const listType = list.tagName.toLowerCase();
+    const listItem = list.querySelector("li") as HTMLElement;
+    const listId = listItem?.getAttribute("data-listid") || "";
+    
+    // Check if this continues the current group
+    const isSameGroup = listType === lastListType && listId === lastListId && lastListId !== null;
+    
+    if (isSameGroup) {
+      currentGroup.push(container);
+    } else {
+      // Start new group
+      if (currentGroup.length > 0) {
+        groups.push(currentGroup);
+      }
+      currentGroup = [container];
+      lastListType = listType;
+      lastListId = listId;
+    }
+  }
+  
+  // Add final group
+  if (currentGroup.length > 0) {
+    groups.push(currentGroup);
+  }
+
+  // Consolidate each group
+  for (const group of groups) {
+    if (group.length <= 1) {
+      continue; // Nothing to consolidate
+    }
+
+    const firstContainer = group[0];
+    const firstList = firstContainer.querySelector("ul, ol") as HTMLElement;
+    if (!firstList) {
+      continue;
+    }
+
+    // Collect all list items from the group
+    const allItems: HTMLElement[] = [];
+    for (const container of group) {
+      const list = container.querySelector("ul, ol");
+      if (list) {
+        const items = Array.from(list.querySelectorAll("li"));
+        allItems.push(...items);
+      }
+    }
+
+    // Clear the first list and add all items to it
+    firstList.innerHTML = "";
+    for (const item of allItems) {
+      firstList.appendChild(item);
+    }
+
+    // Remove the other containers in the group
+    for (let i = 1; i < group.length; i++) {
+      group[i].remove();
+    }
+  }
+}
+
 function normalizeWordHtml(html: string): string {
   try {
     const parser = new DOMParser();
@@ -403,6 +532,7 @@ function normalizeWordHtml(html: string): string {
       return html;
     }
 
+    consolidateWordLists(doc);
     promoteWordHeadingsInPlace(doc);
     transformMonospaceBlocks(doc);
     convertBoldSpansToStrong(doc);
