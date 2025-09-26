@@ -32,6 +32,25 @@ const MONOSPACE_FONT_NAMES = new Set(
   ].map((name) => name.toLowerCase()),
 );
 
+const BLOCK_TEXT_ELEMENTS = new Set([
+  "P",
+  "DIV",
+  "SECTION",
+  "ARTICLE",
+  "UL",
+  "OL",
+  "LI",
+  "TABLE",
+  "THEAD",
+  "TBODY",
+  "TFOOT",
+  "TR",
+  "TH",
+  "TD",
+  "BLOCKQUOTE",
+  "PRE",
+]);
+
 function clampHeading(level: number | null | undefined): number | null {
   if (!level || Number.isNaN(level)) {
     return null;
@@ -270,12 +289,58 @@ function transformMonospaceBlocks(doc: Document) {
 }
 
 function extractMonospaceBlockText(element: HTMLElement): string {
-  const innerText = (element as HTMLElement).innerText;
-  const raw = innerText && innerText.length > 0 ? innerText : element.textContent ?? "";
-  return raw
-    .replace(/\u00a0/g, " ")
-    .replace(/\r\n?/g, "\n")
-    .replace(/\u2028|\u2029/g, "\n");
+  const parts: string[] = [];
+
+  function appendNewline() {
+    if (!parts.length) {
+      parts.push("\n");
+      return;
+    }
+    if (!parts[parts.length - 1].endsWith("\n")) {
+      parts.push("\n");
+    }
+  }
+
+  function serialize(node: Node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = (node.textContent ?? "").replace(/\u00a0/g, " ");
+      if (text) {
+        parts.push(text);
+      }
+      return;
+    }
+
+    if (node.nodeType !== Node.ELEMENT_NODE) {
+      return;
+    }
+
+    const el = node as HTMLElement;
+    const tag = el.tagName;
+
+    if (tag === "BR") {
+      parts.push("\n");
+      return;
+    }
+
+    for (const child of Array.from(el.childNodes)) {
+      serialize(child);
+    }
+
+    if (BLOCK_TEXT_ELEMENTS.has(tag)) {
+      appendNewline();
+    }
+  }
+
+  for (const child of Array.from(element.childNodes)) {
+    serialize(child);
+  }
+
+  let text = parts.join("");
+  text = text.replace(/\r\n?/g, "\n").replace(/\u2028|\u2029/g, "\n");
+  text = text.replace(/[ \t]+\n/g, "\n");
+  text = text.replace(/\n{3,}/g, "\n\n");
+  text = text.replace(/^[\n\s]+/, "").replace(/[\n\s]+$/, "");
+  return text;
 }
 
 function isBoldFontWeight(fontWeight: string | null | undefined): boolean {
