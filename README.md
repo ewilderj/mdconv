@@ -1,8 +1,8 @@
 # Markdown Clipboard Converter
 
-A Chrome extension that transforms rich text from your clipboard into polished Markdown. Paste formatted content, preview the converted Markdown instantly, and copy it back to your clipboard in a single click.
+A Chrome/Edge extension that transforms rich text from your clipboard into polished Markdown. Paste formatted content, preview the converted Markdown instantly, and copy it back to your clipboard in a single click.
 
-Created with a lot of help from Copilot in VS Code, using GPT-5-Codex and Sonnet 4 models.
+Created with a lot of help from Copilot in VS Code, using GPT-5-Codex and Sonnet 4 models. 
 
 ## Features
 
@@ -21,13 +21,28 @@ Created with a lot of help from Copilot in VS Code, using GPT-5-Codex and Sonnet
 
 ## Getting Started
 
-### 1. Install dependencies
+### 1. Install Node.js (Windows users)
+
+If you don't have Node.js installed on Windows:
+
+1. Visit [nodejs.org](https://nodejs.org) and download the LTS version (recommended)
+2. Run the installer and follow the installation wizard
+3. Restart your terminal/VS Code after installation
+4. Verify installation by running: `node --version` and `npm --version`
+
+**PowerShell Execution Policy Fix:**
+If you encounter "cannot be loaded because running scripts is disabled" error when using npm:
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+### 2. Install dependencies
 
 ```bash
 npm install
 ```
 
-### 2. Build the extension
+### 3. Build the extension
 
 ```bash
 npm run build
@@ -42,7 +57,25 @@ The compiled assets are emitted to `dist/`.
 3. Click **Load unpacked** and choose the `dist` folder.
 4. The “Markdown Clipboard Converter” icon will appear in the toolbar.
 
-### 4. (Optional) Start a development watch task
+###4. Load the unpacked extension in Chrome or Edge
+
+**For Chrome:**
+1. Open `chrome://extensions` in your browser.
+2. Toggle **Developer mode** on (top-right switch).
+3. Click **Load unpacked** and choose the `dist` folder.
+4. The "Markdown Clipboard Converter" icon will appear in the toolbar.
+
+**For Microsoft Edge:**
+1. Open `edge://extensions/` in your browser.
+2. Toggle **Developer mode** on (left sidebar).
+3. Click **Load unpacked** and choose the `dist` folder.
+4. The "Markdown Clipboard Converter" icon will appear in the toolbar.
+
+**To pin the extension for easy access:**
+- Click the puzzle piece icon (🧩) in the toolbar, then click the pin icon next to "Markdown Clipboard Converter"
+- **Edge**: Click the puzzle piece icon (🧩) in the toolbar, then click the pin icon next to "Markdown Clipboard Converter"
+
+### 5. (Optional) Start a development watch task
 
 ```bash
 npm run dev
@@ -50,7 +83,7 @@ npm run dev
 
 This runs esbuild in watch mode and mirrors static assets into `dist/` whenever they change.
 
-### 5. (Optional) Type-check only
+### 6. (Optional) Type-check only
 
 ```bash
 npm run typecheck
