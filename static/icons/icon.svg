@@ -1,0 +1,34 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- A dark, rounded square background for a modern look -->
+  <rect width="128" height="128" rx="24" fill="#2D3748"/>
+
+  <!-- Left Side: "RT" representing Rich Text -->
+  <!-- Using dominant-baseline and text-anchor for precise centering -->
+  <text x="36" y="66" 
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" 
+        font-size="44" 
+        font-weight="600" 
+        fill="#A0AEC0" 
+        dominant-baseline="middle" 
+        text-anchor="middle">
+    RT
+  </text>
+
+  <!-- Center: An arrow indicating conversion -->
+  <path d="M58 64L78 64M78 64L72 58M78 64L72 70" 
+        stroke="#718096" 
+        stroke-width="4" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+
+  <!-- Right Side: A clean, bold "M" for Markdown -->
+  <text x="100" y="66" 
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" 
+        font-size="44" 
+        font-weight="bold" 
+        fill="#E2E8F0" 
+        dominant-baseline="middle" 
+        text-anchor="middle">
+    M
+  </text>
+</svg>

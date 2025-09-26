@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Markdown Clipboard Converter",
+  "description": "Convert rich text from the clipboard into Markdown directly from the Chrome toolbar.",
+  "version": "0.1.0",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Markdown Clipboard Converter"
+  },
+  "permissions": [
+    "clipboardRead",
+    "clipboardWrite",
+    "storage"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
