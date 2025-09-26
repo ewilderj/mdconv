@@ -21,6 +21,10 @@ Created with a lot of help from Copilot in VS Code, using GPT-5-Codex and Sonnet
 
 ## Getting Started
 
+### 1. Install Node.js (Mac)
+
+Install Node, preferable through [Homebrew](https://brew.sh/).
+
 ### 1. Install Node.js (Windows users)
 
 If you don't have Node.js installed on Windows:
@@ -57,7 +61,7 @@ The compiled assets are emitted to `dist/`.
 3. Click **Load unpacked** and choose the `dist` folder.
 4. The “Markdown Clipboard Converter” icon will appear in the toolbar.
 
-###4. Load the unpacked extension in Chrome or Edge
+### 4. Load the unpacked extension in Chrome or Edge
 
 **For Chrome:**
 1. Open `chrome://extensions` in your browser.
