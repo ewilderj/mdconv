@@ -2,6 +2,8 @@
 
 A Chrome extension that transforms rich text from your clipboard into polished Markdown. Paste formatted content, preview the converted Markdown instantly, and copy it back to your clipboard in a single click.
 
+Created with a lot of help from Copilot in VS Code, using GPT-5-Codex and Sonnet 4 models.
+
 ## Features
 
 - **One-click conversion** – Read HTML from the clipboard and convert it to Markdown using [Turndown](https://github.com/mixmark-io/turndown).
@@ -68,10 +70,6 @@ dist/             # Build output (generated)
 PRD.md            # Product requirements document
 ```
 
-## Customization Notes
-
-- The placeholder icons in `static/icons` are 1×1 transparent PNGs. Replace them with production-ready artwork before publishing.
-- Update `static/manifest.json` with an appropriate version number and metadata when you release.
 
 ## License
 
