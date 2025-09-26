@@ -20,6 +20,18 @@ type ClipboardData = {
   images?: ClipboardImageData[];
 };
 
+type ImageHandlingMode = "embed" | "link" | "placeholder";
+
+type ImageHandlingConfig = {
+  mode: ImageHandlingMode;
+  maxDataURLSize: number; // Maximum size in bytes for data URLs to embed
+};
+
+const DEFAULT_IMAGE_CONFIG: ImageHandlingConfig = {
+  mode: "embed", // Default to embedding images as data URLs
+  maxDataURLSize: 1024 * 1024, // 1MB limit for data URL embedding
+};
+
 // Image handling utilities
 function blobToDataURL(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -47,6 +59,16 @@ function isExternalURL(url: string): boolean {
 
 function getImageAltText(img: HTMLImageElement): string {
   return img.alt || img.title || "Image";
+}
+
+function shouldEmbedDataURL(dataURL: string, config: ImageHandlingConfig): boolean {
+  if (config.mode === "link" || config.mode === "placeholder") {
+    return false;
+  }
+  
+  // Estimate size of data URL (base64 is ~4/3 of original size)
+  const estimatedSize = (dataURL.length * 3) / 4;
+  return estimatedSize <= config.maxDataURLSize;
 }
 
 const turndown = new TurndownService({
@@ -110,18 +132,24 @@ turndown.addRule('list', {
 // Custom image rule to handle different types of image sources
 turndown.addRule('image', {
   filter: 'img',
-  replacement: function(content, node, options) {
+  replacement: function(content: string, node: any, options: any) {
     const img = node as HTMLImageElement;
     const src = img.src;
     const alt = getImageAltText(img);
+    const config = DEFAULT_IMAGE_CONFIG; // Use default config for now
 
     // Handle different types of image sources
     if (isExternalURL(src)) {
       // External URLs - use standard Markdown syntax
       return `![${alt}](${src})`;
     } else if (isDataURL(src)) {
-      // Data URLs - embed as-is (many Markdown processors support this)
-      return `![${alt}](${src})`;
+      // Data URLs - check configuration and size limits
+      if (shouldEmbedDataURL(src, config)) {
+        return `![${alt}](${src})`;
+      } else {
+        // Data URL too large or config says not to embed
+        return `![${alt}](data-url-too-large)`;
+      }
     } else if (src) {
       // Relative or other URLs - preserve as-is
       return `![${alt}](${src})`;
@@ -674,7 +702,7 @@ async function readClipboardAsHtml(): Promise<ClipboardData> {
   return { plain };
 }
 
-async function processClipboardImages(html: string, images?: ClipboardImageData[]): Promise<string> {
+async function processClipboardImages(html: string, images?: ClipboardImageData[], config: ImageHandlingConfig = DEFAULT_IMAGE_CONFIG): Promise<string> {
   if (!images || images.length === 0) {
     return html;
   }
@@ -683,6 +711,11 @@ async function processClipboardImages(html: string, images?: ClipboardImageData[
   
   // For each clipboard image, try to find matching img tags without src or with placeholder src
   // and replace them with data URLs
+  // Note: Parsing user HTML here is safe because:
+  // 1. Content comes from user's own clipboard (not external input)
+  // 2. Parsed in isolated document, not current page DOM  
+  // 3. Only used to extract image metadata, never executed
+  // 4. Result is converted to safe Markdown text
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
   const imgTags = Array.from(doc.querySelectorAll("img"));
@@ -706,46 +739,59 @@ async function processClipboardImages(html: string, images?: ClipboardImageData[
   // If we have standalone clipboard images (not matched to HTML img tags), append them
   if (images.length > emptyImgTags.length) {
     const remainingImages = images.slice(emptyImgTags.length);
-    let additionalImages = '';
     
     for (const imageData of remainingImages) {
       try {
         const dataURL = await blobToDataURL(imageData.blob);
-        additionalImages += `<img src="${dataURL}" alt="Clipboard Image" />`;
+        const img = doc.createElement('img');
+        img.src = dataURL;
+        img.alt = 'Clipboard Image';
+        doc.body?.appendChild(img);
       } catch (error) {
         console.warn("Failed to convert clipboard image to data URL", error);
       }
     }
     
-    if (additionalImages) {
-      processedHtml += additionalImages;
-    }
+    processedHtml = doc.body?.innerHTML || processedHtml;
   }
 
   return processedHtml;
 }
 
-async function convertClipboardPayload(data: ClipboardData): Promise<string> {
+async function convertClipboardPayload(data: ClipboardData, config: ImageHandlingConfig = DEFAULT_IMAGE_CONFIG): Promise<string> {
   const { html, plain, images } = data;
   
   if (html && html.trim()) {
     // Process images first if they exist
-    const processedHtml = await processClipboardImages(html, images);
+    const processedHtml = await processClipboardImages(html, images, config);
     const normalized = normalizeWordHtml(processedHtml);
     return turndown.turndown(normalized);
   }
   
   // If no HTML but we have images, create simple HTML with images
   if (images && images.length > 0) {
-    let imageHtml = '';
+    const parser = new DOMParser();
+    const doc = parser.parseFromString('<html><body></body></html>', 'text/html');
+    
     for (const imageData of images) {
       try {
+        const img = doc.createElement('img');
+        img.alt = 'Clipboard Image';
+        
         const dataURL = await blobToDataURL(imageData.blob);
-        imageHtml += `<img src="${dataURL}" alt="Clipboard Image" />`;
+        if (shouldEmbedDataURL(dataURL, config)) {
+          img.src = dataURL;
+        } else {
+          img.src = 'data-url-too-large';
+        }
+        
+        doc.body?.appendChild(img);
       } catch (error) {
         console.warn("Failed to convert clipboard image to data URL", error);
       }
     }
+    
+    const imageHtml = doc.body?.innerHTML;
     if (imageHtml) {
       return turndown.turndown(imageHtml);
     }
@@ -771,7 +817,7 @@ async function handleConversion(refs: UIRefs) {
   setStatus(refs, "Reading clipboard…", "info");
   try {
     const clipboardData = await readClipboardAsHtml();
-    const markdown = await convertClipboardPayload(clipboardData);
+    const markdown = await convertClipboardPayload(clipboardData, DEFAULT_IMAGE_CONFIG);
 
     if (!markdown) {
       setStatus(refs, "No convertible content found on the clipboard.", "error");
@@ -821,7 +867,7 @@ async function handlePasteEvent(refs: UIRefs, event: ClipboardEvent) {
     images: images.length > 0 ? images : undefined 
   };
   
-  const markdown = await convertClipboardPayload(clipboardData);
+  const markdown = await convertClipboardPayload(clipboardData, DEFAULT_IMAGE_CONFIG);
 
   if (!markdown) {
     setStatus(refs, "Clipboard data was empty.", "error");

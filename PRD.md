@@ -22,7 +22,9 @@ A Chrome browser extension that converts rich-text clipboard content into clean 
 Primary use cases:
 1. Convert formatted meeting notes to Markdown for a GitHub issue.
 2. Paste styled emails into Markdown without manual cleanup.
-3. Migrate Google Docs snippets into Markdown documentation effortlessly.
+3. Migrate Google Docs snippets with images into Markdown documentation effortlessly.
+4. Convert rich content from web pages that include embedded images.
+5. Preserve screenshots and diagrams when converting formatted text.
 
 ## 4. User Stories
 - _As a_ technical writer, _I want_ to paste formatted text into the popup _so that_ I instantly get Markdown that I can paste into my docs.
@@ -37,6 +39,11 @@ Primary use cases:
 5. **Status messaging** communicates success or actionable errors (e.g., missing permissions, empty clipboard).
 6. **Permissions flow** requests `clipboardRead` and `clipboardWrite` permissions on demand.
 7. **Word normalization** upgrades detected headings, monospace paragraphs, and bold spans so the resulting Markdown preserves intent.
+8. **Image handling** preserves images from clipboard content:
+   - External image URLs are converted to standard Markdown `![alt](url)` syntax
+   - Base64/data URL images are embedded in Markdown (with size limits for performance)
+   - Standalone clipboard images are converted to data URLs and embedded
+   - Status messages indicate when images are included in the conversion
 
 ## 6. Non-Functional Requirements
 - **Performance**: Conversion should complete within 200 ms for typical clipboard payloads (<200 KB HTML).

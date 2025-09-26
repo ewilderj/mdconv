@@ -13,6 +13,7 @@ Created with a lot of help from Copilot in VS Code, using GPT-5-Codex and Sonnet
 - **Word-aware headings** – Promotes Microsoft Word clipboard headings so Markdown keeps its structure.
 - **Monospace heuristics** – Detects Courier-style Word paragraphs and emits fenced code blocks.
 - **Bold span detection** – Upgrades inline `font-weight: bold` spans into Markdown `**strong**` text.
+- **🎨 Image handling** – Preserves images from clipboard content, supporting external URLs, base64 data URLs, and standalone clipboard images.
 
 ## Screenshot
 
@@ -65,6 +66,19 @@ Runs TypeScript diagnostics without emitting bundled assets.
 3. The Markdown appears in the output area and is automatically copied back to your clipboard so you can paste it wherever it's needed.
 
 > **Clipboard permissions**: Chrome will prompt for clipboard permissions when first reading or writing. Accept the prompt so the extension can function correctly.
+
+## Image Handling
+
+The extension now supports images in clipboard content:
+
+- **External images** – Images with HTTP/HTTPS URLs are converted to standard Markdown syntax: `![alt text](image_url)`
+- **Base64 images** – Data URL images are preserved in Markdown (useful for inline images from Google Docs, Word, etc.)
+- **Clipboard images** – Images copied directly to clipboard (e.g., from screenshots) are automatically embedded as data URLs
+- **Missing images** – Images without sources get placeholder text: `![alt text](image-not-available)`
+
+**Size limits**: Data URL images larger than 1MB are replaced with placeholders to prevent performance issues.
+
+**Supported sources**: Google Docs, Microsoft Word, web pages, screenshot tools, and other applications that put images on the clipboard.
 
 ## Project Structure
 
