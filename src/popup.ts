@@ -9,6 +9,46 @@ type UIRefs = {
   status: HTMLElement;
 };
 
+type ClipboardImageData = {
+  blob: Blob;
+  type: string;
+};
+
+type ClipboardData = {
+  html?: string;
+  plain?: string;
+  images?: ClipboardImageData[];
+};
+
+// Image handling utilities
+function blobToDataURL(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+function extractImageSrcFromHtml(html: string): string[] {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+  const images = Array.from(doc.querySelectorAll("img"));
+  return images.map(img => img.src).filter(src => src);
+}
+
+function isDataURL(url: string): boolean {
+  return url.startsWith("data:");
+}
+
+function isExternalURL(url: string): boolean {
+  return url.startsWith("http://") || url.startsWith("https://");
+}
+
+function getImageAltText(img: HTMLImageElement): string {
+  return img.alt || img.title || "Image";
+}
+
 const turndown = new TurndownService({
   headingStyle: "atx",
   codeBlockStyle: "fenced",
@@ -64,6 +104,31 @@ turndown.addRule('list', {
     });
     
     return processedItems.join('\n') + '\n';
+  }
+});
+
+// Custom image rule to handle different types of image sources
+turndown.addRule('image', {
+  filter: 'img',
+  replacement: function(content, node, options) {
+    const img = node as HTMLImageElement;
+    const src = img.src;
+    const alt = getImageAltText(img);
+
+    // Handle different types of image sources
+    if (isExternalURL(src)) {
+      // External URLs - use standard Markdown syntax
+      return `![${alt}](${src})`;
+    } else if (isDataURL(src)) {
+      // Data URLs - embed as-is (many Markdown processors support this)
+      return `![${alt}](${src})`;
+    } else if (src) {
+      // Relative or other URLs - preserve as-is
+      return `![${alt}](${src})`;
+    } else {
+      // No src attribute - create placeholder
+      return `![${alt}](image-not-available)`;
+    }
   }
 });
 
@@ -567,18 +632,39 @@ async function writeClipboard(text: string) {
   await navigator.clipboard.writeText(text);
 }
 
-async function readClipboardAsHtml(): Promise<{ html?: string; plain?: string }> {
+async function readClipboardAsHtml(): Promise<ClipboardData> {
   if (navigator.clipboard && "read" in navigator.clipboard) {
     try {
       const items = await navigator.clipboard.read();
+      let html: string | undefined;
+      let plain: string | undefined;
+      const images: ClipboardImageData[] = [];
+
       for (const item of items) {
-        if (item.types.includes("text/html")) {
+        // Get text content
+        if (item.types.includes("text/html") && !html) {
           const blob = await item.getType("text/html");
-          const html = await blob.text();
-          const plain = await item.getType("text/plain").then((b) => b.text()).catch(() => "");
-          return { html, plain };
+          html = await blob.text();
+        }
+        if (item.types.includes("text/plain") && !plain) {
+          const blob = await item.getType("text/plain");
+          plain = await blob.text();
+        }
+
+        // Get image content
+        for (const type of item.types) {
+          if (type.startsWith("image/")) {
+            try {
+              const blob = await item.getType(type);
+              images.push({ blob, type });
+            } catch (error) {
+              console.warn(`Failed to read image of type ${type}`, error);
+            }
+          }
         }
       }
+
+      return { html, plain, images: images.length > 0 ? images : undefined };
     } catch (error) {
       console.warn("navigator.clipboard.read unavailable, falling back", error);
     }
@@ -588,11 +674,83 @@ async function readClipboardAsHtml(): Promise<{ html?: string; plain?: string }>
   return { plain };
 }
 
-function convertClipboardPayload(html?: string, plain?: string) {
+async function processClipboardImages(html: string, images?: ClipboardImageData[]): Promise<string> {
+  if (!images || images.length === 0) {
+    return html;
+  }
+
+  let processedHtml = html;
+  
+  // For each clipboard image, try to find matching img tags without src or with placeholder src
+  // and replace them with data URLs
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+  const imgTags = Array.from(doc.querySelectorAll("img"));
+  
+  // Find img tags that might need image data from clipboard
+  const emptyImgTags = imgTags.filter(img => !img.src || img.src === "about:blank" || img.src.includes("placeholder"));
+  
+  // If we have clipboard images and empty img tags, try to match them
+  if (emptyImgTags.length > 0 && images.length > 0) {
+    for (let i = 0; i < Math.min(emptyImgTags.length, images.length); i++) {
+      try {
+        const dataURL = await blobToDataURL(images[i].blob);
+        emptyImgTags[i].src = dataURL;
+      } catch (error) {
+        console.warn("Failed to convert image blob to data URL", error);
+      }
+    }
+    processedHtml = doc.body?.innerHTML || html;
+  }
+  
+  // If we have standalone clipboard images (not matched to HTML img tags), append them
+  if (images.length > emptyImgTags.length) {
+    const remainingImages = images.slice(emptyImgTags.length);
+    let additionalImages = '';
+    
+    for (const imageData of remainingImages) {
+      try {
+        const dataURL = await blobToDataURL(imageData.blob);
+        additionalImages += `<img src="${dataURL}" alt="Clipboard Image" />`;
+      } catch (error) {
+        console.warn("Failed to convert clipboard image to data URL", error);
+      }
+    }
+    
+    if (additionalImages) {
+      processedHtml += additionalImages;
+    }
+  }
+
+  return processedHtml;
+}
+
+async function convertClipboardPayload(data: ClipboardData): Promise<string> {
+  const { html, plain, images } = data;
+  
   if (html && html.trim()) {
-    const normalized = normalizeWordHtml(html);
+    // Process images first if they exist
+    const processedHtml = await processClipboardImages(html, images);
+    const normalized = normalizeWordHtml(processedHtml);
     return turndown.turndown(normalized);
   }
+  
+  // If no HTML but we have images, create simple HTML with images
+  if (images && images.length > 0) {
+    let imageHtml = '';
+    for (const imageData of images) {
+      try {
+        const dataURL = await blobToDataURL(imageData.blob);
+        imageHtml += `<img src="${dataURL}" alt="Clipboard Image" />`;
+      } catch (error) {
+        console.warn("Failed to convert clipboard image to data URL", error);
+      }
+    }
+    if (imageHtml) {
+      return turndown.turndown(imageHtml);
+    }
+  }
+  
   return plain?.trim() ?? "";
 }
 
@@ -612,8 +770,8 @@ async function presentMarkdown(refs: UIRefs, markdown: string, context: string) 
 async function handleConversion(refs: UIRefs) {
   setStatus(refs, "Reading clipboard…", "info");
   try {
-    const { html, plain } = await readClipboardAsHtml();
-    const markdown = convertClipboardPayload(html, plain);
+    const clipboardData = await readClipboardAsHtml();
+    const markdown = await convertClipboardPayload(clipboardData);
 
     if (!markdown) {
       setStatus(refs, "No convertible content found on the clipboard.", "error");
@@ -621,7 +779,15 @@ async function handleConversion(refs: UIRefs) {
       return;
     }
 
-    const context = html ? "Converted rich text from clipboard" : "Converted plain text from clipboard";
+    let context = "Converted plain text from clipboard";
+    if (clipboardData.html) {
+      context = "Converted rich text from clipboard";
+    }
+    if (clipboardData.images && clipboardData.images.length > 0) {
+      const imageCount = clipboardData.images.length;
+      context += ` (including ${imageCount} image${imageCount > 1 ? 's' : ''})`;
+    }
+    
     await presentMarkdown(refs, markdown, context);
   } catch (error) {
     console.error("Failed to convert clipboard contents", error);
@@ -631,9 +797,31 @@ async function handleConversion(refs: UIRefs) {
 
 async function handlePasteEvent(refs: UIRefs, event: ClipboardEvent) {
   event.preventDefault();
+  
   const html = event.clipboardData?.getData("text/html");
   const plain = event.clipboardData?.getData("text/plain");
-  const markdown = convertClipboardPayload(html, plain);
+  
+  // Try to get images from the paste event
+  const images: ClipboardImageData[] = [];
+  if (event.clipboardData) {
+    for (let i = 0; i < event.clipboardData.items.length; i++) {
+      const item = event.clipboardData.items[i];
+      if (item.type.startsWith("image/")) {
+        const blob = item.getAsFile();
+        if (blob) {
+          images.push({ blob, type: item.type });
+        }
+      }
+    }
+  }
+
+  const clipboardData: ClipboardData = { 
+    html, 
+    plain, 
+    images: images.length > 0 ? images : undefined 
+  };
+  
+  const markdown = await convertClipboardPayload(clipboardData);
 
   if (!markdown) {
     setStatus(refs, "Clipboard data was empty.", "error");
@@ -641,7 +829,14 @@ async function handlePasteEvent(refs: UIRefs, event: ClipboardEvent) {
     return;
   }
 
-  const context = html ? "Converted pasted rich text" : "Converted pasted text";
+  let context = "Converted pasted text";
+  if (html) {
+    context = "Converted pasted rich text";
+  }
+  if (images.length > 0) {
+    context += ` (including ${images.length} image${images.length > 1 ? 's' : ''})`;
+  }
+  
   await presentMarkdown(refs, markdown, context);
 }
 
