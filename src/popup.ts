@@ -38,6 +38,10 @@ const IMAGE_PLACEHOLDERS = {
   DATA_URL_TOO_LARGE: "data-url-too-large",
 } as const;
 
+// Global state for image reference tracking
+let imageReferenceCounter = 0;
+const imageReferences: Map<string, string> = new Map();
+
 // Image handling utilities
 function blobToDataURL(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -75,6 +79,30 @@ function shouldEmbedDataURL(dataURL: string, config: ImageHandlingConfig): boole
   // Estimate size of data URL (base64 is ~4/3 of original size)
   const estimatedSize = (dataURL.length * 3) / 4;
   return estimatedSize <= config.maxDataURLSize;
+}
+
+function resetImageReferences(): void {
+  imageReferenceCounter = 0;
+  imageReferences.clear();
+}
+
+function generateImageReference(dataURL: string, alt: string): string {
+  imageReferenceCounter++;
+  const refId = `image-${imageReferenceCounter}`;
+  imageReferences.set(refId, dataURL);
+  return `![${alt}][${refId}]`;
+}
+
+function getImageReferencesMarkdown(): string {
+  if (imageReferences.size === 0) {
+    return '';
+  }
+  
+  const references = Array.from(imageReferences.entries())
+    .map(([refId, dataURL]) => `[${refId}]: ${dataURL}`)
+    .join('\n');
+  
+  return '\n\n' + references;
 }
 
 const turndown = new TurndownService({
@@ -151,7 +179,8 @@ turndown.addRule('image', {
     } else if (isDataURL(src)) {
       // Data URLs - check configuration and size limits
       if (shouldEmbedDataURL(src, config)) {
-        return `![${alt}](${src})`;
+        // Use reference-style links for data URLs to move them to the end
+        return generateImageReference(src, alt);
       } else {
         // Data URL too large or config says not to embed
         return `![${alt}](${IMAGE_PLACEHOLDERS.DATA_URL_TOO_LARGE})`;
@@ -767,11 +796,17 @@ async function processClipboardImages(html: string, images?: ClipboardImageData[
 async function convertClipboardPayload(data: ClipboardData, config: ImageHandlingConfig = DEFAULT_IMAGE_CONFIG): Promise<string> {
   const { html, plain, images } = data;
   
+  // Reset image references for each conversion
+  resetImageReferences();
+  
   if (html && html.trim()) {
     // Process images first if they exist
     const processedHtml = await processClipboardImages(html, images, config);
     const normalized = normalizeWordHtml(processedHtml);
-    return turndown.turndown(normalized);
+    const markdown = turndown.turndown(normalized);
+    
+    // Append image references at the end
+    return markdown + getImageReferencesMarkdown();
   }
   
   // If no HTML but we have images, create simple HTML with images
@@ -799,7 +834,9 @@ async function convertClipboardPayload(data: ClipboardData, config: ImageHandlin
     
     const imageHtml = doc.body?.innerHTML;
     if (imageHtml) {
-      return turndown.turndown(imageHtml);
+      const markdown = turndown.turndown(imageHtml);
+      // Append image references at the end
+      return markdown + getImageReferencesMarkdown();
     }
   }
   
