@@ -14,7 +14,7 @@
     "dev:js": "esbuild src/popup.ts src/background.ts src/content-script.ts --bundle --outdir=dist --format=esm --target=chrome115 --sourcemap --watch",
   "dev:assets": "cpx \"static/**/*\" dist --watch",
     "generate:icons": "node scripts/generate-icons.mjs",
-    "test": "tsx --test test/verify-markdown.test.ts"
+    "test": "tsx --test \"test/**/*.test.ts\""
   },
   "keywords": [
     "chrome-extension",
