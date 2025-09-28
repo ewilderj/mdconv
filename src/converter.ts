@@ -30,6 +30,12 @@ const MONOSPACE_FONT_NAMES = new Set(
     "fira code",
     "inconsolata",
     "ubuntu mono",
+    "roboto mono",
+    "jetbrains mono",
+    "pt mono",
+    "ibm plex mono",
+    "andale mono",
+    "monospace",
   ].map((name) => name.toLowerCase()),
 );
 
@@ -243,6 +249,7 @@ function shouldTransformToCodeBlock(element: HTMLElement): boolean {
   let encounteredMonospace = isMonospaceFontFamily(readInlineFontFamily(element));
   const ownerDocument = element.ownerDocument;
   const showElements = ownerDocument.defaultView?.NodeFilter?.SHOW_ELEMENT ?? 1;
+  const showText = ownerDocument.defaultView?.NodeFilter?.SHOW_TEXT ?? 4;
   const walker = ownerDocument.createTreeWalker(element, showElements);
 
   while (walker.nextNode()) {
@@ -267,6 +274,40 @@ function shouldTransformToCodeBlock(element: HTMLElement): boolean {
     }
 
     return false;
+  }
+
+  const textWalker = ownerDocument.createTreeWalker(element, showText);
+
+  while (textWalker.nextNode()) {
+    const current = textWalker.currentNode as Text;
+    const value = current.textContent ?? "";
+    if (!value.trim()) {
+      continue;
+    }
+
+    let parent: HTMLElement | null = current.parentElement;
+    let monospaceAncestor = false;
+
+    while (parent) {
+      if (parent === element) {
+        if (isMonospaceFontFamily(readInlineFontFamily(parent))) {
+          monospaceAncestor = true;
+        }
+        break;
+      }
+
+      const fontFamily = readInlineFontFamily(parent);
+      if (fontFamily && isMonospaceFontFamily(fontFamily)) {
+        monospaceAncestor = true;
+        break;
+      }
+
+      parent = parent.parentElement;
+    }
+
+    if (!monospaceAncestor) {
+      return false;
+    }
   }
 
   return encounteredMonospace;
@@ -355,6 +396,59 @@ function extractMonospaceBlockText(element: HTMLElement): string {
   text = text.replace(/\n{3,}/g, "\n\n");
   text = text.replace(/^[\n\s]+/, "").replace(/[\n\s]+$/, "");
   return text;
+}
+
+function convertMonospaceSpansToCode(doc: Document) {
+  const candidates = Array.from(doc.body.querySelectorAll("span, font, tt")) as HTMLElement[];
+
+  for (const element of candidates) {
+    if (element.closest("pre, code")) {
+      continue;
+    }
+
+    if (element.tagName !== "TT") {
+      const fontFamily = readInlineFontFamily(element);
+      if (!fontFamily || !isMonospaceFontFamily(fontFamily)) {
+        continue;
+      }
+    }
+
+    const textContent = element.textContent ?? "";
+    if (!textContent.trim()) {
+      continue;
+    }
+
+    let shouldSkip = false;
+    const descendants = Array.from(element.querySelectorAll("*")) as HTMLElement[];
+    for (const descendant of descendants) {
+      const tag = descendant.tagName;
+      if (tag === "A" || tag === "IMG" || tag === "CODE" || tag === "PRE") {
+        shouldSkip = true;
+        break;
+      }
+      if (BLOCK_TEXT_ELEMENTS.has(tag)) {
+        shouldSkip = true;
+        break;
+      }
+    }
+
+    if (shouldSkip) {
+      continue;
+    }
+
+    let inlineText = textContent.replace(/\u00a0/g, " ");
+    inlineText = inlineText.replace(/\r\n?/g, "\n");
+    inlineText = inlineText.replace(/\s*\n\s*/g, " ");
+    inlineText = inlineText.trim();
+
+    if (!inlineText) {
+      continue;
+    }
+
+    const code = doc.createElement("code");
+    code.textContent = inlineText;
+    element.replaceWith(code);
+  }
 }
 
 function isBoldFontWeight(fontWeight: string | null | undefined): boolean {
@@ -818,6 +912,8 @@ function normalizeGoogleDocsHtml(html: string, context: ConversionContext): stri
 
     // Remove non-breaking spaces that Google Docs adds
     removeNonBreakingSpaces(doc);
+
+  convertMonospaceSpansToCode(doc);
     
     // Apply some Word normalization techniques that also work for Google Docs
     convertInlineBoundarySpacesToNbsp(doc);
@@ -955,6 +1051,7 @@ function normalizeWordHtml(html: string, context: ConversionContext): string {
     convertInlineBoundarySpacesToNbsp(doc);
     promoteWordHeadingsInPlace(doc);
     transformMonospaceBlocks(doc);
+    convertMonospaceSpansToCode(doc);
     convertBoldSpansToStrong(doc);
     convertItalicSpansToEm(doc);
 
@@ -1073,6 +1170,14 @@ export function convertHtmlToMarkdown(html: string, options: ConversionOptions =
   const turndownInstance = createTurndownService(options.imageHandling);
   
   const markdown = turndownInstance.turndown(normalized);
+ 
+  const debugProcess = (globalThis as typeof globalThis & {
+    process?: { env?: Record<string, string | undefined> };
+  }).process;
+  if (debugProcess?.env?.MDCONV_DEBUG_INLINE === "1" && normalized.includes("monospace")) {
+    console.error("Normalized:\n", normalized);
+    console.error("Markdown:\n", markdown);
+  }
   return markdown.replace(/\u00a0/g, " ").replace(/[ \t]+\n/g, "\n");
 }
 
