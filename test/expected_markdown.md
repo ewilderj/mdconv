@@ -24,4 +24,6 @@ Numbered list
 2. Fi
 3. Fo
 
+Inlined `monospace should` be handled properly.
+
 Finally, a [link](https://github.com/) to GitHub.
