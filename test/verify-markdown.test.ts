@@ -27,6 +27,10 @@ const FIXTURES = [
     name: "Popup clipboard capture (2025-09-27)",
     file: "test3.html",
   },
+  {
+    name: "Example document HTML",
+    file: "example_document.html",
+  },
 ];
 
 const globalsDom = new JSDOM("<!doctype html><html><body></body></html>");

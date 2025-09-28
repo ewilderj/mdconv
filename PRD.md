@@ -26,17 +26,21 @@ Primary use cases:
 
 ## 4. User Stories
 - _As a_ technical writer, _I want_ to paste formatted text into the popup _so that_ I instantly get Markdown that I can paste into my docs.
-- _As a_ developer, _I want_ the extension to copy the generated Markdown back to my clipboard automatically _so that_ I can share it in chat or commit messages.
+- _As a_ developer, _I want_ to right-click on selected code examples or documentation _so that_ I can quickly convert them to Markdown without switching contexts.
+- _As a_ content creator, _I want_ the extension to copy the generated Markdown back to my clipboard automatically _so that_ I can share it in chat or commit messages.
 - _As a_ privacy-conscious user, _I want_ all processing to stay local _so that_ I know my clipboard never leaves my machine.
+- _As a_ busy professional, _I want_ visual feedback when using the context menu _so that_ I know the conversion succeeded without having to test-paste.
 
 ## 5. Functional Requirements
 1. **Paste & Convert button** reads the clipboard and converts HTML to Markdown using Turndown.
 2. **Keyboard paste support** listens for `Cmd/Ctrl + V` within the popup and performs the same conversion.
-3. **Auto-copy on success** writes the newly generated Markdown back to the clipboard immediately after conversion.
-4. **Clear output** button removes the current Markdown and resets the status message.
-5. **Status messaging** communicates success or actionable errors (e.g., missing permissions, empty clipboard).
-6. **Permissions flow** requests `clipboardRead` and `clipboardWrite` permissions on demand.
-7. **Word normalization** upgrades detected headings, monospace paragraphs, and bold spans so the resulting Markdown preserves intent.
+3. **Context menu integration** adds "Copy as Markdown" option to right-click menus when text is selected, enabling instant conversion without opening the popup.
+4. **Auto-copy on success** writes the newly generated Markdown back to the clipboard immediately after conversion.
+5. **Clear output** button removes the current Markdown and resets the status message.
+6. **Status messaging** communicates success or actionable errors (e.g., missing permissions, empty clipboard).
+7. **Visual feedback** shows badge indicators on the extension icon for context menu conversion success/failure.
+8. **Permissions flow** requests `clipboardRead`, `clipboardWrite`, `contextMenus`, and `scripting` permissions on demand.
+9. **Word normalization** upgrades detected headings, monospace paragraphs, and bold spans so the resulting Markdown preserves intent.
 
 ## 6. Non-Functional Requirements
 - **Performance**: Conversion should complete within 200 ms for typical clipboard payloads (<200 KB HTML).
