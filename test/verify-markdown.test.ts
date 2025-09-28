@@ -62,6 +62,7 @@ async function readFixture(filename: string): Promise<string> {
 }
 
 const expectedMarkdownPromise = readFixture("expected_markdown.md");
+const expectedMarkdownWithImagesPromise = readFixture("expected_markdown_image.md");
 
 test("Word HTML fixtures convert to expected Markdown", async (t) => {
   const expectedMarkdown = (await expectedMarkdownPromise).trim();
@@ -86,5 +87,27 @@ test("Word HTML fixtures convert to expected Markdown", async (t) => {
         );
       });
     }),
+  );
+});
+
+test("Word HTML with inline images converts to expected Markdown", async () => {
+  const [html, expectedMarkdown] = await Promise.all([
+    readFixture("raw_word_image.html"),
+    expectedMarkdownWithImagesPromise.then((markdown) => markdown.trim()),
+  ]);
+
+  const markdown = convertClipboardPayload(html, undefined, {
+    domParser: createDomParser(),
+  }).trim();
+
+  assert.ok(
+    !/\u00a0/.test(markdown),
+    "raw_word_image.html should not contain non-breaking spaces",
+  );
+
+  assert.equal(
+    markdown,
+    expectedMarkdown,
+    "raw_word_image.html should convert to expected markdown output",
   );
 });
