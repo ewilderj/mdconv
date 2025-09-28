@@ -1,9 +1,16 @@
 import TurndownService from "turndown";
 
+/**
+ * How to handle images during HTML to Markdown conversion.
+ * - 'preserve': Convert all images to Markdown image syntax (default)
+ * - 'preserve-external-only': Only preserve images with http/https URLs
+ * - 'remove': Remove all images from the output
+ */
 export type ImageHandlingMode = 'preserve' | 'remove' | 'preserve-external-only';
 
 export type ConversionOptions = {
   domParser?: DOMParser;
+  /** Controls how images are handled during conversion. Defaults to 'preserve' */
   imageHandling?: ImageHandlingMode;
 };
 
@@ -962,7 +969,6 @@ function createTurndownService(imageHandling: ImageHandlingMode = 'preserve'): T
     headingStyle: "atx",
     codeBlockStyle: "fenced",
     linkStyle: "inlined",
-    imageHandling: imageHandling,
   });
 
   turndownInstance.keep(["pre", "code"]);
@@ -1021,11 +1027,10 @@ function createTurndownService(imageHandling: ImageHandlingMode = 'preserve'): T
   // Custom rule to handle images based on configuration
   turndownInstance.addRule("images", {
     filter: "img",
-    replacement: function (content, node, options) {
+    replacement: function (content, node) {
       const element = node as HTMLImageElement;
-      const imageHandlingMode = (options as any).imageHandling || 'preserve';
       
-      if (imageHandlingMode === 'remove') {
+      if (imageHandling === 'remove') {
         return '';
       }
       
@@ -1038,7 +1043,7 @@ function createTurndownService(imageHandling: ImageHandlingMode = 'preserve'): T
       }
       
       // Handle different image types based on configuration
-      if (imageHandlingMode === 'preserve-external-only') {
+      if (imageHandling === 'preserve-external-only') {
         // Only preserve images with external URLs (http/https)
         if (!src.match(/^https?:\/\//i)) {
           return '';

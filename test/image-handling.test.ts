@@ -13,16 +13,16 @@ const __dirname = dirname(__filename);
 const globalsDom = new JSDOM("<!doctype html><html><body></body></html>");
 const globalsWindow = globalsDom.window;
 
-const globalWithDom = globalThis as typeof globalThis & {
+const extendedGlobal = globalThis as typeof globalThis & {
   Node?: typeof globalsWindow.Node;
   NodeFilter?: typeof globalsWindow.NodeFilter;
 };
 
-if (!globalWithDom.Node) {
-  globalWithDom.Node = globalsWindow.Node;
+if (!extendedGlobal.Node) {
+  extendedGlobal.Node = globalsWindow.Node;
 }
-if (!globalWithDom.NodeFilter) {
-  globalWithDom.NodeFilter = globalsWindow.NodeFilter;
+if (!extendedGlobal.NodeFilter) {
+  extendedGlobal.NodeFilter = globalsWindow.NodeFilter;
 }
 
 function createDomParser(): DOMParser {
