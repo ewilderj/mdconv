@@ -9,6 +9,63 @@ type UIRefs = {
   status: HTMLElement;
 };
 
+const DEBUG_CLIPBOARD_FLAG = "mdconv.debugClipboard";
+
+function isClipboardDebugEnabled(): boolean {
+  try {
+    return localStorage.getItem(DEBUG_CLIPBOARD_FLAG) === "true";
+  } catch (error) {
+    return false;
+  }
+}
+
+type ClipboardDebugPayload = {
+  source: string;
+  html?: string | null;
+  plain?: string | null;
+  markdown?: string | null;
+};
+
+function logClipboardDebug(payload: ClipboardDebugPayload) {
+  if (!isClipboardDebugEnabled()) {
+    return;
+  }
+
+  const { source, html, plain, markdown } = payload;
+  const group = `[mdconv] ${source}`;
+
+  if (typeof console.groupCollapsed === "function") {
+    console.groupCollapsed(group);
+  } else {
+    console.log(group);
+  }
+
+  if (html !== undefined) {
+    console.log(`HTML (${html ? `${html.length} chars` : "none"})`);
+    if (html) {
+      console.log(html);
+    }
+  }
+
+  if (plain !== undefined) {
+    console.log(`Plain (${plain ? `${plain.length} chars` : "none"})`);
+    if (plain) {
+      console.log(plain);
+    }
+  }
+
+  if (markdown !== undefined) {
+    console.log(`Markdown (${markdown ? `${markdown.length} chars` : "none"})`);
+    if (markdown) {
+      console.log(markdown);
+    }
+  }
+
+  if (typeof console.groupEnd === "function") {
+    console.groupEnd();
+  }
+}
+
 function formatPreview(value: string | undefined | null, limit = 10000): string {
   if (!value) {
     return "(none)";
@@ -80,8 +137,9 @@ async function handleConversion(refs: UIRefs) {
   setStatus(refs, "Reading clipboard…", "info");
   try {
     const { html, plain } = await readClipboardAsHtml();
-    // Debug logging removed
+    logClipboardDebug({ source: "clipboard.read", html, plain });
     const markdown = convertClipboardPayload(html, plain);
+    logClipboardDebug({ source: "clipboard.read -> markdown", markdown });
 
     if (!markdown) {
       setStatus(refs, "No convertible content found on the clipboard.", "error");
@@ -100,8 +158,9 @@ async function handlePasteEvent(refs: UIRefs, event: ClipboardEvent) {
   event.preventDefault();
   const html = event.clipboardData?.getData("text/html");
   const plain = event.clipboardData?.getData("text/plain");
-  // Debug logging removed
+  logClipboardDebug({ source: "paste", html, plain });
   const markdown = convertClipboardPayload(html, plain);
+  logClipboardDebug({ source: "paste -> markdown", markdown });
 
   if (!markdown) {
     setStatus(refs, "Clipboard data was empty.", "error");

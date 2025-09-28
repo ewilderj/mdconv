@@ -112,6 +112,25 @@ Exercises the Word desktop, Word Online, and Google Docs HTML fixtures in `test/
 
 > **Clipboard permissions**: Chrome will prompt for clipboard permissions when first reading or writing. Accept the prompt so the extension can function correctly.
 
+### Debugging clipboard captures
+
+If clipboard conversion behaves differently in the popup than in your automated tests, enable the built-in logging flag to capture the raw payload:
+
+1. Open the popup and choose **Inspect** to bring up DevTools.
+2. In the DevTools console, run:
+
+  ```js
+  localStorage.setItem('mdconv.debugClipboard', 'true');
+  ```
+
+3. Paste or click **Paste & Convert** again. The console will log grouped entries containing the raw HTML, plain text, and resulting Markdown so you can copy them into new fixtures.
+
+Disable logging when you're done:
+
+```js
+localStorage.removeItem('mdconv.debugClipboard');
+```
+
 ## Project Structure
 
 ```

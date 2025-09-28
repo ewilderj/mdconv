@@ -784,6 +784,8 @@ function removeLeadingListMarkerNodes(element: HTMLElement, listType: "ul" | "ol
       }
 
       if (elementChild.tagName === "SPAN" || elementChild.tagName === "FONT") {
+        removeLeadingListMarkerNodes(elementChild, listType);
+
         const text = (elementChild.textContent ?? "").replace(/\u00a0/g, " ");
         if (!text.trim()) {
           elementChild.remove();
@@ -793,6 +795,7 @@ function removeLeadingListMarkerNodes(element: HTMLElement, listType: "ul" | "ol
           elementChild.remove();
           continue;
         }
+        break;
       }
 
       break;
