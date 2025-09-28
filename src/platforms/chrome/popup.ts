@@ -1,4 +1,4 @@
-import { convertClipboardPayload } from "./converter";
+import { chromeConverter } from "./chrome-converter.js";
 
 type Tone = "info" | "success" | "error";
 
@@ -138,7 +138,7 @@ async function handleConversion(refs: UIRefs) {
   try {
     const { html, plain } = await readClipboardAsHtml();
     logClipboardDebug({ source: "clipboard.read", html, plain });
-    const markdown = convertClipboardPayload(html, plain);
+    const markdown = chromeConverter.convertClipboardPayload(html, plain);
     logClipboardDebug({ source: "clipboard.read -> markdown", markdown });
 
     if (!markdown) {
@@ -159,7 +159,7 @@ async function handlePasteEvent(refs: UIRefs, event: ClipboardEvent) {
   const html = event.clipboardData?.getData("text/html");
   const plain = event.clipboardData?.getData("text/plain");
   logClipboardDebug({ source: "paste", html, plain });
-  const markdown = convertClipboardPayload(html, plain);
+  const markdown = chromeConverter.convertClipboardPayload(html, plain);
   logClipboardDebug({ source: "paste -> markdown", markdown });
 
   if (!markdown) {

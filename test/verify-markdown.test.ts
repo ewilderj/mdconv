@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { test } from "node:test";
 import { JSDOM } from "jsdom";
 
-import { convertClipboardPayload } from "../src/converter.ts";
+import { convertClipboardPayload } from "../src/core/converter.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -68,7 +68,7 @@ test("Word HTML fixtures convert to expected Markdown", async (t) => {
       await t.test(name, async () => {
         const html = await readFixture(file);
         const markdown = convertClipboardPayload(html, undefined, {
-          domParser: createDomParser(),
+          domParserAdapter: createDomParser(),
         }).trim();
 
         assert.ok(
@@ -93,7 +93,7 @@ test("Word HTML with inline images converts to expected Markdown", async () => {
   ]);
 
   const markdown = convertClipboardPayload(html, undefined, {
-    domParser: createDomParser(),
+    domParserAdapter: createDomParser(),
   }).trim();
 
   assert.ok(

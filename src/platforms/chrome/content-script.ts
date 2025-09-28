@@ -1,5 +1,5 @@
 /// <reference types="chrome" />
-import { convertClipboardPayload } from "./converter";
+import { chromeConverter } from "./chrome-converter.js";
 
 // Listen for messages from the background script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -19,9 +19,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       const text = selection.toString();
 
       // Use your existing converter with a proper DOMParser
-      const markdown = convertClipboardPayload(html || undefined, text || undefined, {
-        domParser: new DOMParser()
-      });
+      const markdown = chromeConverter.convertClipboardPayload(html || undefined, text || undefined);
 
       // Copy to clipboard
       navigator.clipboard.writeText(markdown)
