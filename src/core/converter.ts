@@ -1169,6 +1169,11 @@ function createTurndownService(imageHandling: ImageHandlingMode = 'preserve'): T
 }
 
 export function convertHtmlToMarkdown(html: string, options: ConversionOptions = {}): string {
+  // Validate input
+  if (!html || typeof html !== 'string') {
+    return '';
+  }
+
   const context = resolveContext(options);
   
   // Detect source and apply appropriate normalization
@@ -1195,8 +1200,13 @@ export function convertHtmlToMarkdown(html: string, options: ConversionOptions =
 }
 
 export function convertClipboardPayload(html?: string, plain?: string, options: ConversionOptions = {}): string {
-  if (html && html.trim()) {
+  // Ensure html is a string before calling trim()
+  if (html && typeof html === 'string' && html.trim()) {
     return convertHtmlToMarkdown(html, options);
   }
-  return plain?.trim() ?? "";
+  // Ensure plain is a string before calling trim()
+  if (plain && typeof plain === 'string') {
+    return plain.trim();
+  }
+  return "";
 }

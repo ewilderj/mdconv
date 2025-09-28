@@ -12,10 +12,11 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "inlineSources": true,
-    "inlineSourceMap": true,
-    "types": ["chrome"],
+  "noFallthroughCasesInSwitch": true,
+  "inlineSources": true,
+  "inlineSourceMap": true,
+  "types": ["chrome", "node"],
+  "jsx": "react-jsx",
     "importHelpers": true
   },
   "include": ["src"]

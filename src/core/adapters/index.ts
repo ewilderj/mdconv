@@ -1,2 +1,2 @@
-export { ClipboardAdapter } from './clipboard.js';
-export { DOMParserAdapter } from './dom-parser.js';
+export type { ClipboardAdapter } from './clipboard.js';
+export type { DOMParserAdapter } from './dom-parser.js';

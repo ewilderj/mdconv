@@ -1,5 +1,4 @@
 /// <reference types="chrome" />
-import { convertClipboardPayload } from "./converter";
 
 chrome.runtime.onInstalled.addListener(() => {
   // Create context menu item

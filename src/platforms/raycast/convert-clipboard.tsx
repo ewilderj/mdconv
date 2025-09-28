@@ -23,10 +23,13 @@ export default function ConvertClipboard() {
       setIsLoading(true);
       setError(null);
       
+      // Since Raycast doesn't support HTML clipboard reading, we'll enhance the plain text processing
+      
       const result = await raycastConverter.convertFromClipboard({
         imageHandling: preferences.imageHandling
       });
       
+      console.log('Debug - Conversion result:', typeof result, result);
       setMarkdown(result);
       
       if (result.trim()) {

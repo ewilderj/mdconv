@@ -1,1 +1,1 @@
-../../src/platforms/raycast/convert-selection.tsx
+export { default } from "../../src/platforms/raycast/convert-selection.js";
