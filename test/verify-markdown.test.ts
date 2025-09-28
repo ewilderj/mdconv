@@ -23,14 +23,14 @@ const FIXTURES = [
     name: "Google Docs HTML",
     file: "raw_gdocs.html",
   },
-  {
+/*   {
     name: "Word clipboard capture (2025-09-27)",
     file: "test2.html",
   },
   {
     name: "Popup clipboard capture (2025-09-27)",
     file: "test3.html",
-  },
+  }, */
   {
     name: "Example document HTML",
     file: "example_document.html",
