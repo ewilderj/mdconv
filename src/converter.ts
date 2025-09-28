@@ -1129,14 +1129,18 @@ function createTurndownService(imageHandling: ImageHandlingMode = 'preserve'): T
     filter: "img",
     replacement: function (content, node) {
       const element = node as HTMLImageElement;
-      
+
       if (imageHandling === 'remove') {
         return '';
       }
       
       // Use getAttribute to get the original src value without JSDOM URL resolution
       const src = element.getAttribute('src') || '';
-      const alt = element.getAttribute('alt') || '';
+      const rawAlt = element.getAttribute('alt') || '';
+      const alt = rawAlt
+        .replace(/[\r\n]+/g, ' ')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
       
       if (!src) {
         return '';

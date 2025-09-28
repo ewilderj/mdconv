@@ -15,6 +15,7 @@ Created with a lot of help from Copilot in VS Code, using GPT-5-Codex and Sonnet
 - **Google Docs normalization** – Cleans up Docs-specific spans and non-breaking spaces so the output stays readable.
 - **Monospace heuristics** – Detects Courier-style Word paragraphs and emits fenced code blocks.
 - **Bold span detection** – Upgrades inline `font-weight: bold` spans into Markdown `**strong**` text.
+- **Image support** – Includes conversion of inline images (beware large images will result in massive Markdown!)
 
 ## Screenshot
 
