@@ -4,6 +4,8 @@ A Chrome/Edge extension that transforms rich text from your clipboard into polis
 
 Created with a lot of help from Copilot in VS Code, using GPT-5-Codex and Sonnet 4 models. 
 
+⚠️ As of 2025-09-28 this extension has been submitted to the Chrome and Edge extension stores. I will update with links once available. In the meantime, to use this please follow "Getting Started" below ⚠️
+
 ## Features
 
 - **One-click conversion** – Read HTML from the clipboard and convert it to Markdown using [Turndown](https://github.com/mixmark-io/turndown).
