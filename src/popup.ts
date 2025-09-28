@@ -9,6 +9,34 @@ type UIRefs = {
   status: HTMLElement;
 };
 
+function formatPreview(value: string | undefined | null, limit = 10000): string {
+  if (!value) {
+    return "(none)";
+  }
+  const trimmed = value.replace(/\s+/g, " ").trim();
+  if (trimmed.length <= limit) {
+    return trimmed;
+  }
+  return `${trimmed.slice(0, limit)}… [truncated ${trimmed.length - limit} chars]`;
+}
+
+function logClipboardPayload(context: string, payload: { html?: string; plain?: string }) {
+  const htmlLength = payload.html?.length ?? 0;
+  const plainLength = payload.plain?.length ?? 0;
+  console.group(`[mdconv] ${context}`);
+  console.info("HTML length:", htmlLength, "Plain length:", plainLength);
+  if (payload.html) {
+    console.debug("HTML preview:", formatPreview(payload.html));
+  }
+  if (payload.plain) {
+    console.debug("Plain preview:", formatPreview(payload.plain));
+  }
+  if (!payload.html && !payload.plain) {
+    console.debug("No clipboard payload available.");
+  }
+  console.groupEnd();
+}
+
 function queryUI(): UIRefs | null {
   const pasteButton = document.getElementById("pasteButton") as HTMLButtonElement | null;
   const clearButton = document.getElementById("clearButton") as HTMLButtonElement | null;
@@ -69,6 +97,7 @@ async function handleConversion(refs: UIRefs) {
   setStatus(refs, "Reading clipboard…", "info");
   try {
     const { html, plain } = await readClipboardAsHtml();
+    logClipboardPayload("Read clipboard", { html, plain });
     const markdown = convertClipboardPayload(html, plain);
 
     if (!markdown) {
@@ -89,6 +118,7 @@ async function handlePasteEvent(refs: UIRefs, event: ClipboardEvent) {
   event.preventDefault();
   const html = event.clipboardData?.getData("text/html");
   const plain = event.clipboardData?.getData("text/plain");
+  logClipboardPayload("Paste event", { html, plain });
   const markdown = convertClipboardPayload(html, plain);
 
   if (!markdown) {

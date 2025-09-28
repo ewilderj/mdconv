@@ -579,32 +579,31 @@ function isLegacyWordListParagraph(element: HTMLElement): boolean {
   return false;
 }
 
-function extractLegacyListInfo(paragraph: HTMLElement, commentNodeType: number): { type: "ul" | "ol"; contentHtml: string } | null {
+function extractWordListInfo(paragraph: HTMLElement, commentNodeType: number): { type: "ul" | "ol"; contentHtml: string } | null {
   const markerSpan = paragraph.querySelector<HTMLElement>('span[style*="mso-list:Ignore"]');
-  if (!markerSpan) {
+  let listType: "ul" | "ol" | null = null;
+
+  if (markerSpan) {
+    const markerText = markerSpan.textContent ?? "";
+    listType = /^\s*\d+[\.\)]/.test(markerText.trim()) ? "ol" : "ul";
+  } else {
+    listType = detectListTypeFromContent(paragraph.textContent ?? "");
+  }
+
+  if (!listType) {
     return null;
   }
 
-  const markerText = markerSpan.textContent ?? "";
-  const isOrdered = /^\s*\d+[\.\)]/.test(markerText.trim());
-
   const clone = paragraph.cloneNode(true) as HTMLElement;
+  removeNodesByType(clone, commentNodeType);
 
-  const stack: Node[] = [clone];
-  while (stack.length > 0) {
-    const node = stack.pop()!;
-    for (const child of Array.from(node.childNodes)) {
-      if (child.nodeType === commentNodeType) {
-        child.parentNode?.removeChild(child);
-        continue;
-      }
-      stack.push(child);
+  if (markerSpan) {
+    const ignored = Array.from(clone.querySelectorAll<HTMLElement>('span[style*="mso-list:Ignore"]'));
+    for (const span of ignored) {
+      span.remove();
     }
-  }
-
-  const ignored = Array.from(clone.querySelectorAll<HTMLElement>('span[style*="mso-list:Ignore"]'));
-  for (const span of ignored) {
-    span.remove();
+  } else {
+    removeLeadingListMarkerNodes(clone, listType);
   }
 
   const officeNodes = Array.from(clone.querySelectorAll<HTMLElement>("o\\:p"));
@@ -612,12 +611,14 @@ function extractLegacyListInfo(paragraph: HTMLElement, commentNodeType: number):
     officeNode.remove();
   }
 
+  trimLeadingWhitespaceNodes(clone);
+
   const contentHtml = clone.innerHTML.trim();
   if (!contentHtml) {
     return null;
   }
 
-  return { type: isOrdered ? "ol" : "ul", contentHtml };
+  return { type: listType, contentHtml };
 }
 
 function convertLegacyWordParagraphLists(doc: Document) {
@@ -633,7 +634,7 @@ function convertLegacyWordParagraphLists(doc: Document) {
       continue;
     }
 
-    const info = extractLegacyListInfo(paragraph, commentNodeType);
+  const info = extractWordListInfo(paragraph, commentNodeType);
     if (!info) {
       currentList = null;
       continue;
@@ -664,6 +665,126 @@ function replaceOfficeParagraphNodes(doc: Document) {
 }
 
 const INLINE_TAGS_FOR_NBSP = new Set(["A", "B", "I", "EM", "STRONG", "CODE", "SPAN", "SMALL", "BIG", "SUB", "SUP"]);
+
+function detectListTypeFromContent(text: string): "ul" | "ol" | null {
+  const normalized = text.replace(/\u00a0/g, " ").trim();
+  if (!normalized) {
+    return null;
+  }
+  if (/^\d+[\.)]/.test(normalized)) {
+    return "ol";
+  }
+  if (/^[•·o\-*]/i.test(normalized)) {
+    return "ul";
+  }
+  return null;
+}
+
+function removeNodesByType(root: HTMLElement, nodeType: number) {
+  const stack: Node[] = [root];
+  while (stack.length > 0) {
+    const node = stack.pop()!;
+    for (const child of Array.from(node.childNodes)) {
+      if (child.nodeType === nodeType) {
+        child.parentNode?.removeChild(child);
+        continue;
+      }
+      stack.push(child);
+    }
+  }
+}
+
+function removeLeadingListMarkerNodes(element: HTMLElement, listType: "ul" | "ol") {
+  const document = element.ownerDocument;
+  const nodeCtor = document.defaultView?.Node;
+  const TEXT_NODE = nodeCtor?.TEXT_NODE ?? 3;
+  const ELEMENT_NODE = nodeCtor?.ELEMENT_NODE ?? 1;
+  const orderedPattern = /^\s*\d+[\.)](?:\s+|$)/;
+  const bulletPattern = /^\s*[•·o\-*](?:\s+|$)/i;
+  const pattern = listType === "ol" ? orderedPattern : bulletPattern;
+
+  while (element.firstChild) {
+    const child = element.firstChild;
+
+    if (child.nodeType === TEXT_NODE) {
+      const original = child.textContent ?? "";
+      const normalized = original.replace(/\u00a0/g, " ");
+
+      if (!normalized.trim()) {
+        child.parentNode?.removeChild(child);
+        continue;
+      }
+
+      if (pattern.test(normalized)) {
+        const stripped = normalized.replace(pattern, "");
+        const trimmed = stripped.replace(/^\s+/, "");
+        if (trimmed) {
+          child.textContent = trimmed;
+        } else {
+          child.parentNode?.removeChild(child);
+        }
+        continue;
+      }
+
+      break;
+    }
+
+    if (child.nodeType === ELEMENT_NODE) {
+      const elementChild = child as HTMLElement;
+      if (elementChild.tagName === "BR") {
+        elementChild.remove();
+        continue;
+      }
+
+      if (elementChild.tagName === "SPAN" || elementChild.tagName === "FONT") {
+        const text = (elementChild.textContent ?? "").replace(/\u00a0/g, " ");
+        if (!text.trim()) {
+          elementChild.remove();
+          continue;
+        }
+        if (pattern.test(text)) {
+          elementChild.remove();
+          continue;
+        }
+      }
+
+      break;
+    }
+
+    child.parentNode?.removeChild(child);
+  }
+}
+
+function trimLeadingWhitespaceNodes(element: HTMLElement) {
+  const document = element.ownerDocument;
+  const nodeCtor = document.defaultView?.Node;
+  const TEXT_NODE = nodeCtor?.TEXT_NODE ?? 3;
+  const ELEMENT_NODE = nodeCtor?.ELEMENT_NODE ?? 1;
+
+  while (element.firstChild) {
+    const child = element.firstChild;
+
+    if (child.nodeType === TEXT_NODE) {
+      const original = child.textContent ?? "";
+      const trimmed = original.replace(/^[\s\u00a0]+/, "");
+      if (trimmed.length === 0) {
+        child.parentNode?.removeChild(child);
+        continue;
+      }
+      if (trimmed.length !== original.length) {
+        child.textContent = trimmed;
+      }
+      break;
+    }
+
+    if (child.nodeType === ELEMENT_NODE && (child as HTMLElement).tagName === "BR") {
+      child.parentNode?.removeChild(child);
+      continue;
+    }
+
+    break;
+  }
+}
 
 function convertInlineBoundarySpacesToNbsp(doc: Document) {
   const showText = doc.defaultView?.NodeFilter?.SHOW_TEXT ?? 4;

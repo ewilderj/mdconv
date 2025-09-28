@@ -19,6 +19,14 @@ const FIXTURES = [
     name: "Word web HTML",
     file: "raw_word_web.html",
   },
+  {
+    name: "Word clipboard capture (2025-09-27)",
+    file: "test2.html",
+  },
+  {
+    name: "Popup clipboard capture (2025-09-27)",
+    file: "test3.html",
+  },
 ];
 
 const globalsDom = new JSDOM("<!doctype html><html><body></body></html>");
