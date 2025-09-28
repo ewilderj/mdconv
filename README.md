@@ -88,15 +88,7 @@ npm run dev
 
 This runs esbuild in watch mode and mirrors static assets into `dist/` whenever they change.
 
-### 7. (Optional) Type-check only
-
-```bash
-npm run typecheck
-```
-
-Runs TypeScript diagnostics without emitting bundled assets.
-
-### 8. Run regression tests
+### 7. Run regression tests
 
 ```bash
 npm test

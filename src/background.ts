@@ -2,8 +2,6 @@
 import { convertClipboardPayload } from "./converter";
 
 chrome.runtime.onInstalled.addListener(() => {
-  console.info("Markdown Clipboard Converter installed");
-  
   // Create context menu item
   chrome.contextMenus.create({
     id: "copyAsMarkdown",
@@ -24,8 +22,6 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         });
       } catch (messageError) {
         // If content script isn't available, inject it and try again
-        console.log("Content script not found, injecting...");
-        
         await chrome.scripting.executeScript({
           target: { tabId: tab.id },
           files: ['content-script.js']
@@ -54,8 +50,6 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       }, 2000);
       
     } catch (error) {
-      console.error("Failed to convert selection to Markdown:", error);
-      
       // Show error badge
       await chrome.action.setBadgeText({ text: "✗" });
       await chrome.action.setBadgeBackgroundColor({ color: "#d93025" });

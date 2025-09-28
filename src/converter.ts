@@ -851,7 +851,6 @@ function normalizeWordHtml(html: string, context: ConversionContext): string {
 
     return doc.body.innerHTML;
   } catch (error) {
-    console.warn("Failed to normalize Word markup", error);
     return html;
   }
 }

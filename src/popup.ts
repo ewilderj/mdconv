@@ -20,22 +20,7 @@ function formatPreview(value: string | undefined | null, limit = 10000): string 
   return `${trimmed.slice(0, limit)}… [truncated ${trimmed.length - limit} chars]`;
 }
 
-function logClipboardPayload(context: string, payload: { html?: string; plain?: string }) {
-  const htmlLength = payload.html?.length ?? 0;
-  const plainLength = payload.plain?.length ?? 0;
-  console.group(`[mdconv] ${context}`);
-  console.info("HTML length:", htmlLength, "Plain length:", plainLength);
-  if (payload.html) {
-    console.debug("HTML preview:", formatPreview(payload.html));
-  }
-  if (payload.plain) {
-    console.debug("Plain preview:", formatPreview(payload.plain));
-  }
-  if (!payload.html && !payload.plain) {
-    console.debug("No clipboard payload available.");
-  }
-  console.groupEnd();
-}
+
 
 function queryUI(): UIRefs | null {
   const pasteButton = document.getElementById("pasteButton") as HTMLButtonElement | null;
@@ -44,7 +29,6 @@ function queryUI(): UIRefs | null {
   const status = document.getElementById("status");
 
   if (!pasteButton || !clearButton || !output || !status) {
-    console.error("Popup UI failed to initialize: missing element(s)");
     return null;
   }
 
@@ -73,7 +57,7 @@ async function readClipboardAsHtml(): Promise<{ html?: string; plain?: string }>
         }
       }
     } catch (error) {
-      console.warn("navigator.clipboard.read unavailable, falling back", error);
+      // Fallback to readText
     }
   }
 
@@ -88,8 +72,7 @@ async function presentMarkdown(refs: UIRefs, markdown: string, context: string) 
     await writeClipboard(markdown);
     setStatus(refs, `${context}. Markdown copied to clipboard.`, "success");
   } catch (error) {
-    console.error("Failed to copy markdown", error);
-    setStatus(refs, `${context}. Converted text but unable to copy automatically. Copy manually.`, "error");
+    setStatus(refs, "Failed to copy to clipboard", "error");
   }
 }
 
@@ -97,7 +80,7 @@ async function handleConversion(refs: UIRefs) {
   setStatus(refs, "Reading clipboard…", "info");
   try {
     const { html, plain } = await readClipboardAsHtml();
-    logClipboardPayload("Read clipboard", { html, plain });
+    // Debug logging removed
     const markdown = convertClipboardPayload(html, plain);
 
     if (!markdown) {
@@ -109,8 +92,7 @@ async function handleConversion(refs: UIRefs) {
     const context = html ? "Converted rich text from clipboard" : "Converted plain text from clipboard";
     await presentMarkdown(refs, markdown, context);
   } catch (error) {
-    console.error("Failed to convert clipboard contents", error);
-    setStatus(refs, "Couldn't read the clipboard. Grant clipboard permissions and try again.", "error");
+    setStatus(refs, "Conversion failed. Please try again.", "error");
   }
 }
 
@@ -118,7 +100,7 @@ async function handlePasteEvent(refs: UIRefs, event: ClipboardEvent) {
   event.preventDefault();
   const html = event.clipboardData?.getData("text/html");
   const plain = event.clipboardData?.getData("text/plain");
-  logClipboardPayload("Paste event", { html, plain });
+  // Debug logging removed
   const markdown = convertClipboardPayload(html, plain);
 
   if (!markdown) {
