@@ -147,6 +147,10 @@ test/             # Test fixtures and conversion verification
 PRD.md            # Product requirements document
 ```
 
+## Credits
+
+* @nahals for original inspiration, Windows usage, and more
+* This extension builds on the amazing [Turndown](https://github.com/mixmark-io/turndown) library
 
 ## License
 
