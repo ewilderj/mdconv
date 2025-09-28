@@ -95,6 +95,14 @@ npm run typecheck
 
 Runs TypeScript diagnostics without emitting bundled assets.
 
+### 8. Run regression tests
+
+```bash
+npm test
+```
+
+Exercises the Word desktop and Word Online HTML fixtures in `test/` to ensure the Markdown output stays consistent.
+
 ## Usage
 
 1. Click the extension icon to open the popup.

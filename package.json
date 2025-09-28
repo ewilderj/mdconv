@@ -11,8 +11,9 @@
     "copy:assets": "cpx \"static/**/*\" dist",
     "dev": "npm run clean && npm-run-all --parallel dev:js dev:assets",
     "dev:js": "esbuild src/popup.ts src/background.ts --bundle --outdir=dist --format=esm --target=chrome115 --sourcemap --watch",
-  "dev:assets": "cpx \"static/**/*\" dist --watch",
-  "generate:icons": "node scripts/generate-icons.mjs"
+    "dev:assets": "cpx \"static/**/*\" dist --watch",
+    "generate:icons": "node scripts/generate-icons.mjs",
+    "test": "tsx --test test/verify-markdown.test.ts"
   },
   "keywords": [
     "chrome-extension",
@@ -26,14 +27,17 @@
   },
   "devDependencies": {
     "@types/chrome": "^0.0.262",
+    "@types/jsdom": "^21.1.7",
     "@types/node": "^20.12.7",
     "@types/turndown": "^5.0.5",
     "cpx": "^1.5.0",
-  "esbuild": "^0.23.0",
-  "sharp": "^0.33.4",
+    "esbuild": "^0.23.0",
+    "jsdom": "^24.0.0",
+    "sharp": "^0.33.4",
     "npm-run-all": "^4.1.5",
     "rimraf": "^5.0.5",
     "tslib": "^2.6.2",
+    "tsx": "^4.7.1",
     "typescript": "^5.4.3"
   }
 }
