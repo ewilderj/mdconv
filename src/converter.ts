@@ -1,7 +1,17 @@
 import TurndownService from "turndown";
 
+/**
+ * How to handle images during HTML to Markdown conversion.
+ * - 'preserve': Convert all images to Markdown image syntax (default)
+ * - 'preserve-external-only': Only preserve images with http/https URLs
+ * - 'remove': Remove all images from the output
+ */
+export type ImageHandlingMode = 'preserve' | 'remove' | 'preserve-external-only';
+
 export type ConversionOptions = {
   domParser?: DOMParser;
+  /** Controls how images are handled during conversion. Defaults to 'preserve' */
+  imageHandling?: ImageHandlingMode;
 };
 
 type ConversionContext = {
@@ -48,64 +58,7 @@ const BLOCK_TEXT_ELEMENTS = new Set([
   "PRE",
 ]);
 
-const turndown = new TurndownService({
-  headingStyle: "atx",
-  codeBlockStyle: "fenced",
-  linkStyle: "inlined",
-});
 
-turndown.keep(["pre", "code"]);
-
-// Custom rule to handle paragraphs inside list items (Word behavior)
-turndown.addRule("listParagraph", {
-  filter: function (node) {
-    return !!(node.nodeName === "P" && node.parentNode && node.parentNode.nodeName === "LI");
-  },
-  replacement: function (content) {
-    return content;
-  },
-});
-
-// Custom list processing to fix spacing issues
-turndown.addRule("listItem", {
-  filter: "li",
-  replacement: function (content, node, options) {
-    content = content
-      .replace(/^\s+/, "")
-      .replace(/\s+$/, "")
-      .replace(/\n/gm, "\n    ");
-
-    const bullet = options.bulletListMarker || "*";
-    return bullet + " " + content + "\n";
-  },
-});
-
-// Override list rules to process all items at once
-turndown.addRule("list", {
-  filter: ["ul", "ol"],
-  replacement: function (content, node, options) {
-    const element = node as HTMLElement;
-    const listItems = Array.from(element.querySelectorAll("li"));
-    const isOrdered = element.tagName.toLowerCase() === "ol";
-
-    const processedItems = listItems.map((li, index) => {
-      let itemContent = turndown
-        .turndown(li.innerHTML)
-        .replace(/^\s+/, "")
-        .replace(/\s+$/, "")
-        .replace(/\n/gm, "\n    ");
-
-      if (isOrdered) {
-        return `${index + 1}. ${itemContent}`;
-      } else {
-        const bullet = options.bulletListMarker || "*";
-        return `${bullet} ${itemContent}`;
-      }
-    });
-
-    return processedItems.join("\n") + "\n";
-  },
-});
 
 function clampHeading(level: number | null | undefined): number | null {
   if (!level || Number.isNaN(level)) {
@@ -1108,6 +1061,100 @@ function normalizeWordHtml(html: string, context: ConversionContext): string {
   }
 }
 
+function createTurndownService(imageHandling: ImageHandlingMode = 'preserve'): TurndownService {
+  const turndownInstance = new TurndownService({
+    headingStyle: "atx",
+    codeBlockStyle: "fenced",
+    linkStyle: "inlined",
+  });
+
+  turndownInstance.keep(["pre", "code"]);
+
+  // Custom rule to handle paragraphs inside list items (Word behavior)
+  turndownInstance.addRule("listParagraph", {
+    filter: function (node) {
+      return !!(node.nodeName === "P" && node.parentNode && node.parentNode.nodeName === "LI");
+    },
+    replacement: function (content) {
+      return content;
+    },
+  });
+
+  // Custom list processing to fix spacing issues
+  turndownInstance.addRule("listItem", {
+    filter: "li",
+    replacement: function (content, node, options) {
+      content = content
+        .replace(/^\s+/, "")
+        .replace(/\s+$/, "")
+        .replace(/\n/gm, "\n    ");
+
+      const bullet = options.bulletListMarker || "*";
+      return bullet + " " + content + "\n";
+    },
+  });
+
+  // Override list rules to process all items at once
+  turndownInstance.addRule("list", {
+    filter: ["ul", "ol"],
+    replacement: function (content, node, options) {
+      const element = node as HTMLElement;
+      const listItems = Array.from(element.querySelectorAll("li"));
+      const isOrdered = element.tagName.toLowerCase() === "ol";
+
+      const processedItems = listItems.map((li, index) => {
+        let itemContent = turndownInstance
+          .turndown(li.innerHTML)
+          .replace(/^\s+/, "")
+          .replace(/\s+$/, "")
+          .replace(/\n/gm, "\n    ");
+
+        if (isOrdered) {
+          return `${index + 1}. ${itemContent}`;
+        } else {
+          const bullet = options.bulletListMarker || "*";
+          return `${bullet} ${itemContent}`;
+        }
+      });
+
+      return processedItems.join("\n") + "\n";
+    },
+  });
+
+  // Custom rule to handle images based on configuration
+  turndownInstance.addRule("images", {
+    filter: "img",
+    replacement: function (content, node) {
+      const element = node as HTMLImageElement;
+      
+      if (imageHandling === 'remove') {
+        return '';
+      }
+      
+      // Use getAttribute to get the original src value without JSDOM URL resolution
+      const src = element.getAttribute('src') || '';
+      const alt = element.getAttribute('alt') || '';
+      
+      if (!src) {
+        return '';
+      }
+      
+      // Handle different image types based on configuration
+      if (imageHandling === 'preserve-external-only') {
+        // Only preserve images with external URLs (http/https)
+        if (!src.match(/^https?:\/\//i)) {
+          return '';
+        }
+      }
+      
+      // Return standard Markdown image syntax
+      return `![${alt}](${src})`;
+    },
+  });
+
+  return turndownInstance;
+}
+
 export function convertHtmlToMarkdown(html: string, options: ConversionOptions = {}): string {
   const context = resolveContext(options);
   
@@ -1119,7 +1166,11 @@ export function convertHtmlToMarkdown(html: string, options: ConversionOptions =
     normalized = normalizeWordHtml(html, context);
   }
 
-  const markdown = turndown.turndown(normalized);
+  // Create TurndownService instance with image handling configuration
+  const turndownInstance = createTurndownService(options.imageHandling);
+  
+  const markdown = turndownInstance.turndown(normalized);
+ 
   const debugProcess = (globalThis as typeof globalThis & {
     process?: { env?: Record<string, string | undefined> };
   }).process;
