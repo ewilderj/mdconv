@@ -76,7 +76,6 @@ mdconv/                          # Single repository
 │   │   │       └── chrome-dom-parser.ts
 │   │   └── raycast/           # Raycast extension specific code
 │   │       ├── convert-clipboard.tsx
-│   │       ├── convert-selection.tsx
 │   │       └── adapters/      # Raycast implementations
 │   │           ├── raycast-clipboard.ts
 │   │           └── raycast-dom-parser.ts
@@ -96,10 +95,8 @@ mdconv/                          # Single repository
    - Writes back to clipboard
    - Shows preview in Raycast interface
 
-2. **Convert Selection to Markdown** (Advanced)
-   - Uses Raycast's text selection capabilities
-   - Converts selected rich text
-   - Replaces selection with Markdown
+2. **Additional commands**
+  - Future enhancements can introduce new commands once Raycast exposes richer document access.
 
 ## Implementation Plan
 
@@ -132,7 +129,6 @@ mdconv/                          # Single repository
   - [ ] Configuration options
   - [ ] Error handling and feedback
 - [ ] **Advanced Raycast features**
-  - [ ] Text selection conversion
   - [ ] Keyboard shortcuts
   - [ ] Action panels for options
 

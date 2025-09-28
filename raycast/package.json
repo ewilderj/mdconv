@@ -16,12 +16,6 @@
       "title": "Convert Clipboard to Markdown",
       "description": "Convert rich text from clipboard into Markdown format",
       "mode": "view"
-    },
-    {
-      "name": "convert-selection",
-      "title": "Convert Selected Text to Markdown",
-      "description": "Convert selected rich text into Markdown format",
-      "mode": "no-view"
     }
   ],
   "preferences": [
