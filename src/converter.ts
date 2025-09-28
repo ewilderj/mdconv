@@ -833,6 +833,162 @@ function resolveContext(options: ConversionOptions): ConversionContext {
   return { parser: new DOMParser() };
 }
 
+function isGoogleDocsHtml(html: string): boolean {
+  return html.includes('docs-internal-guid-') || html.includes('id="docs-internal-guid-');
+}
+
+function normalizeGoogleDocsHtml(html: string, context: ConversionContext): string {
+  try {
+    const doc = context.parser.parseFromString(html, "text/html");
+    if (!doc?.body) {
+      return html;
+    }
+
+    // Remove the wrapper <b> tag that Google Docs adds
+    const wrapperB = doc.querySelector('b[id*="docs-internal-guid"]') as HTMLElement;
+    if (wrapperB && wrapperB.style.fontWeight === 'normal') {
+      // Move all children out of the wrapper
+      const parent = wrapperB.parentNode;
+      if (parent) {
+        while (wrapperB.firstChild) {
+          parent.insertBefore(wrapperB.firstChild, wrapperB);
+        }
+        wrapperB.remove();
+      }
+    }
+
+    // Convert Google Docs inline styles to semantic HTML
+    convertGoogleDocsStylesToSemanticHtml(doc);
+    
+    // Detect and group consecutive monospace paragraphs into code blocks
+    groupMonospaceParagraphsIntoCodeBlocks(doc);
+
+    // Remove non-breaking spaces that Google Docs adds
+    removeNonBreakingSpaces(doc);
+    
+    // Apply some Word normalization techniques that also work for Google Docs
+    convertInlineBoundarySpacesToNbsp(doc);
+    convertBoldSpansToStrong(doc);
+    convertItalicSpansToEm(doc);
+
+    return doc.body.innerHTML;
+  } catch (error) {
+    return html;
+  }
+}
+
+function convertGoogleDocsStylesToSemanticHtml(doc: Document): void {
+  // Convert spans with font-weight:700 to <strong>, but not if they're inside headings
+  const boldSpans = doc.querySelectorAll('span[style*="font-weight:700"]');
+  boldSpans.forEach(span => {
+    // Skip if this span is inside a heading element
+    const isInHeading = span.closest('h1, h2, h3, h4, h5, h6');
+    if (!isInHeading) {
+      const strong = doc.createElement('strong');
+      strong.innerHTML = span.innerHTML;
+      span.parentNode?.replaceChild(strong, span);
+    } else {
+      // For headings, just remove the span and keep the text content
+      const textNode = doc.createTextNode(span.textContent || '');
+      span.parentNode?.replaceChild(textNode, span);
+    }
+  });
+
+  // Convert spans with font-style:italic to <em>
+  const italicSpans = doc.querySelectorAll('span[style*="font-style:italic"]');
+  italicSpans.forEach(span => {
+    const em = doc.createElement('em');
+    em.innerHTML = span.innerHTML;
+    span.parentNode?.replaceChild(em, span);
+  });
+}
+
+function removeNonBreakingSpaces(doc: Document): void {
+  if (!doc.body) {
+    return;
+  }
+
+  // First, normalize HTML entities
+  doc.body.innerHTML = doc.body.innerHTML.replace(/&nbsp;/g, " ");
+
+  const showText = doc.defaultView?.NodeFilter?.SHOW_TEXT ?? 4;
+  const walker = doc.createTreeWalker(doc.body, showText);
+  const textNodes: Text[] = [];
+
+  while (walker.nextNode()) {
+    textNodes.push(walker.currentNode as Text);
+  }
+
+  for (const node of textNodes) {
+    const value = node.nodeValue;
+    if (!value || !value.includes("\u00a0")) {
+      continue;
+    }
+
+    const parentElement = node.parentElement ?? (node.parentNode as Element | null);
+    if (parentElement?.closest("pre, code")) {
+      continue;
+    }
+
+    node.nodeValue = value.replace(/\u00a0/g, " ");
+  }
+}
+
+function groupMonospaceParagraphsIntoCodeBlocks(doc: Document): void {
+  // Find consecutive paragraphs with monospace font
+  const monospaceParas = Array.from(doc.querySelectorAll('p')).filter(p => {
+    const spans = p.querySelectorAll('span');
+    return Array.from(spans).some(span => {
+      const style = span.getAttribute('style') || '';
+      return style.includes('Courier New') || style.includes('monospace');
+    });
+  });
+
+  // Group consecutive monospace paragraphs
+  const groups: HTMLParagraphElement[][] = [];
+  let currentGroup: HTMLParagraphElement[] = [];
+
+  monospaceParas.forEach((para, index) => {
+    const prevPara = monospaceParas[index - 1];
+    const isConsecutive = prevPara && para.previousElementSibling === prevPara;
+
+    if (isConsecutive || currentGroup.length === 0) {
+      currentGroup.push(para);
+    } else {
+      if (currentGroup.length > 0) {
+        groups.push([...currentGroup]);
+      }
+      currentGroup = [para];
+    }
+  });
+
+  if (currentGroup.length > 0) {
+    groups.push(currentGroup);
+  }
+
+  // Convert groups to code blocks
+  groups.forEach(group => {
+    if (group.length >= 2) { // Only convert if multiple consecutive paragraphs
+      const pre = doc.createElement('pre');
+      const code = doc.createElement('code');
+      
+      const codeContent = group.map(para => {
+        // Extract text content, preserving line structure
+        return para.textContent?.trim() || '';
+      }).join('\n');
+      
+      code.textContent = codeContent;
+      pre.appendChild(code);
+      
+      // Replace the first paragraph with the code block
+      group[0].parentNode?.replaceChild(pre, group[0]);
+      
+      // Remove the remaining paragraphs
+      group.slice(1).forEach(para => para.remove());
+    }
+  });
+}
+
 function normalizeWordHtml(html: string, context: ConversionContext): string {
   try {
     const doc = context.parser.parseFromString(html, "text/html");
@@ -857,8 +1013,17 @@ function normalizeWordHtml(html: string, context: ConversionContext): string {
 
 export function convertHtmlToMarkdown(html: string, options: ConversionOptions = {}): string {
   const context = resolveContext(options);
-  const normalized = normalizeWordHtml(html, context);
-  return turndown.turndown(normalized);
+  
+  // Detect source and apply appropriate normalization
+  let normalized: string;
+  if (isGoogleDocsHtml(html)) {
+    normalized = normalizeGoogleDocsHtml(html, context);
+  } else {
+    normalized = normalizeWordHtml(html, context);
+  }
+
+  const markdown = turndown.turndown(normalized);
+  return markdown.replace(/\u00a0/g, " ").replace(/[ \t]+\n/g, "\n");
 }
 
 export function convertClipboardPayload(html?: string, plain?: string, options: ConversionOptions = {}): string {

@@ -1,6 +1,6 @@
 # Markdown Clipboard Converter
 
-A Chrome/Edge extension that transforms rich text from your clipboard into polished Markdown. Paste formatted content, preview the converted Markdown instantly, and copy it back to your clipboard in a single click.
+A Chrome/Edge extension that transforms rich text from your clipboard into polished Markdown. Paste formatted content from Microsoft Word, Google Docs, or the web, preview the converted Markdown instantly, and copy it back to your clipboard in a single click.
 
 Created with a lot of help from Copilot in VS Code, using GPT-5-Codex and Sonnet 4 models. 
 
@@ -12,6 +12,7 @@ Created with a lot of help from Copilot in VS Code, using GPT-5-Codex and Sonnet
 - **Automatic copy-back** – Immediately writes the generated Markdown to your clipboard after each conversion.
 - **Live paste listener** – Supports keyboard pastes (`Cmd/Ctrl + V`) directly inside the popup.
 - **Word-aware headings** – Promotes Microsoft Word clipboard headings so Markdown keeps its structure.
+- **Google Docs normalization** – Cleans up Docs-specific spans and non-breaking spaces so the output stays readable.
 - **Monospace heuristics** – Detects Courier-style Word paragraphs and emits fenced code blocks.
 - **Bold span detection** – Upgrades inline `font-weight: bold` spans into Markdown `**strong**` text.
 
@@ -94,7 +95,7 @@ This runs esbuild in watch mode and mirrors static assets into `dist/` whenever 
 npm test
 ```
 
-Exercises the Word desktop and Word Online HTML fixtures in `test/` to ensure the Markdown output stays consistent.
+Exercises the Word desktop, Word Online, and Google Docs HTML fixtures in `test/` to ensure the Markdown output stays consistent.
 
 ## Usage
 

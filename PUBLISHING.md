@@ -1,12 +1,12 @@
 # Publishing Guide - Markdown Clipboard Converter
 
-This document outlines the steps to publish the Markdown Clipboard Converter extension to both the Chrome Web Store and Microsof### Marketing & Launch Strategy
+This document outlines the steps to publish the Markdown Clipboard Converter extension to both the Chrome Web Store and Microsoft Edge Add-ons store.
 
 ### Pre-Launch
-- [ ] Create simple landing page highlighting Word optimization
-- [ ] Prepare social media posts with Word→Markdown examples
+- [ ] Create simple landing page highlighting Word and Google Docs optimization
+- [ ] Prepare social media posts with Word→Markdown and Docs→Markdown examples
 - [ ] Reach out to relevant communities (Reddit, Discord, etc.)
-- [ ] Write blog post about Word conversion challenges and solutions
+- [ ] Write blog post about Word and Google Docs conversion challenges and solutions
 
 ### Launch Day
 - [ ] Monitor store approval status
@@ -19,7 +19,7 @@ This document outlines the steps to publish the Markdown Clipboard Converter ext
   - r/TechnicalWriting
   - Developer Twitter/X
   - Hacker News (if appropriate)
-  - Microsoft 365 communitiesore.
+  - Microsoft 365 communities
 
 ## Prerequisites
 
@@ -77,17 +77,17 @@ mv mdconv-extension.zip mdconv-chrome-v0.1.0.zip
 ### Step 3: Store Listing Information
 **Required Fields:**
 - **Name**: "Markdown Clipboard Converter"
-- **Summary**: "Convert Microsoft Word & rich text to clean Markdown instantly"
+- **Summary**: "Convert Microsoft Word, Google Docs, & rich text to clean Markdown instantly"
 - **Description**: 
 ```
-The only Markdown converter specifically optimized for Microsoft Word documents. Transform Word docs, Google Docs, web pages, and emails into clean Markdown with perfect formatting preservation.
+A Markdown converter specifically optimized for Microsoft Word and Google Docs documents. Transform Word docs, Google Docs, web pages, and emails into clean Markdown with perfect formatting preservation.
 
-🎯 MICROSOFT WORD OPTIMIZED:
-• Intelligently handles Word's complex HTML output
-• Preserves Word headings, styles, and structure
-• Works with both Word desktop app and Word Online
-• Converts Word's monospace fonts to code blocks
-• Maintains Word's bold/italic formatting perfectly
+🎯 WORD & GOOGLE DOCS OPTIMIZED:
+• Intelligently handles Word and Google Docs HTML quirks
+• Preserves headings, styles, and structure from both editors
+• Works with Word desktop app, Word Online, and Google Docs
+• Cleans up Google Docs spans and non-breaking spaces automatically
+• Converts Word's monospace fonts to code blocks and maintains bold/italic formatting
 
 ✨ POWERFUL FEATURES:
 • One-click conversion from extension popup
@@ -96,7 +96,7 @@ The only Markdown converter specifically optimized for Microsoft Word documents.
 • Smart fallback for plain text content
 • Privacy-focused: all processing happens locally
 
-Perfect for technical writers, developers, and documentation teams who work with Word documents and need clean Markdown output. Tested extensively with real-world Word documents.
+Perfect for technical writers, developers, and documentation teams who work with Word or Google Docs documents and need clean Markdown output. Tested extensively with real-world Word and Google Docs content.
 
 No sign-up required, no data collected, works offline.
 ```
@@ -136,8 +136,8 @@ npm run build:zip
 ### Step 3: Store Listing Information
 **Required Fields:**
 - **Name**: "Markdown Clipboard Converter"
-- **Summary**: "Microsoft Word to Markdown converter with smart formatting"
-- **Description**: (Same as Chrome Web Store, emphasizing Word optimization)
+- **Summary**: "Microsoft Word & Google Docs to Markdown converter with smart formatting"
+- **Description**: (Same as Chrome Web Store, emphasizing Word and Google Docs optimization)
 - **Category**: Productivity & Tools
 - **Screenshots**: Same as Chrome (adjust sizing if needed)
 - **Privacy Policy URL**: https://github.com/ewilderj/mdconv/blob/main/PRIVACY.md
@@ -164,10 +164,10 @@ npm run build:zip
 - **Chrome Web Store**: 1280x800 or 640x400 pixels
 - **Edge Add-ons**: 1366x768, 1920x1080, or 2560x1440 pixels
 - **Content Suggestions**:
-  1. Before/after: Word document → clean Markdown
-  2. Extension popup with Word content being converted
-  3. Context menu in action on a Word Online document
-  4. Side-by-side comparison showing preserved formatting
+  1. Before/after: Word or Google Docs document → clean Markdown
+  2. Extension popup with Word or Google Docs content being converted
+  3. Context menu in action on a Word Online or Google Docs document
+  4. Side-by-side comparison showing preserved formatting from both editors
 - **Quality**: High-resolution, clear UI elements, emphasize Word integration
 
 ### Promotional Images (Optional)

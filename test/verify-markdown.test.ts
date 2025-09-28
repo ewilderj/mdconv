@@ -20,6 +20,10 @@ const FIXTURES = [
     file: "raw_word_web.html",
   },
   {
+    name: "Google Docs HTML",
+    file: "raw_gdocs.html",
+  },
+  {
     name: "Word clipboard capture (2025-09-27)",
     file: "test2.html",
   },
@@ -69,6 +73,11 @@ test("Word HTML fixtures convert to expected Markdown", async (t) => {
         const markdown = convertClipboardPayload(html, undefined, {
           domParser: createDomParser(),
         }).trim();
+
+        assert.ok(
+          !/\u00a0/.test(markdown),
+          `${file} should not contain non-breaking spaces`,
+        );
 
         assert.equal(
           markdown,
