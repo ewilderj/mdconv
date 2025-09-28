@@ -1,20 +1,23 @@
 {
   "name": "clipboard-markdown-extension",
   "version": "0.1.0",
-  "description": "Chrome extension that converts pasted rich text into Markdown",
+  "description": "Multi-platform tool that converts pasted rich text into Markdown (Chrome extension + Raycast extension)",
   "type": "module",
   "scripts": {
     "clean": "rimraf dist",
     "typecheck": "tsc --noEmit --project tsconfig.json",
     "build": "npm run clean && npm-run-all build:js copy:assets",
     "build:js": "esbuild src/platforms/chrome/popup.ts src/platforms/chrome/background.ts src/platforms/chrome/content-script.ts --bundle --outdir=dist --format=esm --target=chrome115 --sourcemap",
-  "copy:assets": "cpx \"static/**/*\" dist",
+    "copy:assets": "cpx \"static/**/*\" dist",
     "build:zip": "npm run build && cd dist && zip -r ../mdconv-extension.zip . && cd ..",
     "dev": "npm run clean && npm-run-all --parallel dev:js dev:assets",
     "dev:js": "esbuild src/platforms/chrome/popup.ts src/platforms/chrome/background.ts src/platforms/chrome/content-script.ts --bundle --outdir=dist --format=esm --target=chrome115 --sourcemap --watch",
-  "dev:assets": "cpx \"static/**/*\" dist --watch",
+    "dev:assets": "cpx \"static/**/*\" dist --watch",
     "generate:icons": "node scripts/generate-icons.mjs",
-    "test": "tsx --test \"test/**/*.test.ts\""
+    "test": "tsx --test \"test/**/*.test.ts\"",
+    "build:raycast": "cd raycast && npm run build",
+    "dev:raycast": "cd raycast && npm run dev",
+    "raycast:install": "cd raycast && npm install"
   },
   "keywords": [
     "chrome-extension",
@@ -27,16 +30,20 @@
     "turndown": "^7.1.2"
   },
   "devDependencies": {
+    "@raycast/api": "^1.103.2",
+    "@raycast/utils": "^1.19.1",
     "@types/chrome": "^0.0.262",
     "@types/jsdom": "^21.1.7",
     "@types/node": "^20.12.7",
+    "@types/react": "^18.3.24",
     "@types/turndown": "^5.0.5",
-  "cpx2": "^8.0.0",
-  "esbuild": "^0.25.10",
+    "cpx2": "^8.0.0",
+    "esbuild": "^0.25.10",
     "jsdom": "^24.0.0",
-    "sharp": "^0.33.4",
     "npm-run-all": "^4.1.5",
+    "react": "^18.3.1",
     "rimraf": "^5.0.5",
+    "sharp": "^0.33.4",
     "tslib": "^2.6.2",
     "tsx": "^4.7.1",
     "typescript": "^5.4.3"

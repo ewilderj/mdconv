@@ -1,0 +1,1 @@
+../../src/platforms/raycast/convert-clipboard.tsx
