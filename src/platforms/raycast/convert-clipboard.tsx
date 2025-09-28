@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Detail, showToast, Toast, getPreferenceValues } from "@raycast/api";
+import { Action, ActionPanel, Clipboard, Detail, showToast, Toast, getPreferenceValues } from "@raycast/api";
 import { useState, useEffect } from "react";
 import { raycastConverter } from "./raycast-converter.js";
 import { ImageHandlingMode } from "../../core/converter.js";
@@ -40,9 +40,7 @@ export default function ConvertClipboard() {
         });
         
         // Copy back to clipboard
-        await raycastConverter.convertAndWriteToClipboard({
-          imageHandling: preferences.imageHandling
-        });
+        await Clipboard.copy(result);
       } else {
         await showToast({
           style: Toast.Style.Failure,
@@ -99,9 +97,7 @@ export default function ConvertClipboard() {
       actions={
         <ActionPanel>
           <Action title="Copy to Clipboard" onAction={async () => {
-            await raycastConverter.convertAndWriteToClipboard({
-              imageHandling: preferences.imageHandling
-            });
+            await Clipboard.copy(markdown);
             await showToast({
               style: Toast.Style.Success,
               title: "Copied to Clipboard"
