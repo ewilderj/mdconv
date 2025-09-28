@@ -28,8 +28,7 @@ export default function ConvertClipboard() {
       const result = await raycastConverter.convertFromClipboard({
         imageHandling: preferences.imageHandling
       });
-      
-      console.log('Debug - Conversion result:', typeof result, result);
+
       setMarkdown(result);
       
       if (result.trim()) {
@@ -91,18 +90,17 @@ export default function ConvertClipboard() {
     );
   }
 
+  const escapedMarkdown = markdown
+    .replace(/```/g, "`\u200b``")
+    .replace(/\r\n/g, "\n");
+
+  const detailMarkdown = `# Conversion Result\n\n\`\`\`\n${escapedMarkdown}\n\`\`\``;
+
   return (
     <Detail
-      markdown={`# Conversion Result\n\n\`\`\`markdown\n${markdown}\n\`\`\``}
+      markdown={detailMarkdown}
       actions={
         <ActionPanel>
-          <Action title="Copy to Clipboard" onAction={async () => {
-            await Clipboard.copy(markdown);
-            await showToast({
-              style: Toast.Style.Success,
-              title: "Copied to Clipboard"
-            });
-          }} />
           <Action title="Convert Again" onAction={convertClipboard} />
         </ActionPanel>
       }

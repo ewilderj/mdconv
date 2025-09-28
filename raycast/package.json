@@ -3,7 +3,7 @@
   "name": "markdown-converter",
   "title": "Markdown Converter",
   "description": "Convert rich text from clipboard into Markdown format",
-  "icon": "markdown.png",
+  "icon": "icon.png",
   "author": "ewilderj",
   "categories": [
     "Developer Tools",
