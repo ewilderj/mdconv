@@ -9,6 +9,7 @@
     "build": "npm run clean && npm-run-all build:js copy:assets",
     "build:js": "esbuild src/popup.ts src/background.ts src/content-script.ts --bundle --outdir=dist --format=esm --target=chrome115 --sourcemap",
     "copy:assets": "cpx \"static/**/*\" dist",
+    "build:zip": "npm run build && cd dist && zip -r ../mdconv-extension.zip . && cd ..",
     "dev": "npm run clean && npm-run-all --parallel dev:js dev:assets",
     "dev:js": "esbuild src/popup.ts src/background.ts src/content-script.ts --bundle --outdir=dist --format=esm --target=chrome115 --sourcemap --watch",
     "dev:assets": "cpx \"static/**/*\" dist --watch",
