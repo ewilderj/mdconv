@@ -14,8 +14,11 @@
     "dev:js": "esbuild src/platforms/chrome/popup.ts src/platforms/chrome/background.ts src/platforms/chrome/content-script.ts --bundle --outdir=dist --format=esm --target=chrome115 --sourcemap --watch",
     "dev:assets": "cpx \"static/**/*\" dist --watch",
     "generate:icons": "node scripts/generate-icons.mjs",
+  "sync-version": "node scripts/sync-version.mjs",
+  "prebuild": "npm run sync-version",
     "test": "tsx --test \"test/**/*.test.ts\"",
     "build:raycast": "cd raycast && npm run build",
+  "prebuild:raycast": "npm run sync-version",
     "dev:raycast": "cd raycast && npm run dev",
     "raycast:install": "cd raycast && npm install"
   },
