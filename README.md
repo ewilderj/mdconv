@@ -1,6 +1,10 @@
 # Markdown Clipboard Converter
 
-A Chrome/Edge extension that transforms rich text from your clipboard into polished Markdown. Paste formatted content from Microsoft Word, Google Docs, or the web, preview the converted Markdown instantly, and copy it back to your clipboard in a single click.
+A multi-platform clipboard converter that transforms rich text into polished Markdown. Available as a Chrome/Edge browser extension, with Raycast integration in development.
+
+**Primary Platform: Browser Extension** – Paste formatted content from Microsoft Word, Google Docs, or the web, preview the converted Markdown instantly, and copy it back to your clipboard in a single click.
+
+**🚧 Work in Progress: Raycast Extension** – Native macOS integration through Raycast for quick clipboard conversion without browser context.
 
 Created with a lot of help from Copilot in VS Code, using GPT-5-Codex and Sonnet 4 models. 
 
@@ -38,6 +42,16 @@ Created with a lot of help from Copilot in VS Code, using GPT-5-Codex and Sonnet
 
 > **Clipboard permissions**: Chrome will prompt for clipboard permissions when first reading or writing. Accept the prompt so the extension can function correctly.
 
+### Raycast Extension (Work in Progress)
+
+A native Raycast command for clipboard conversion is in development:
+
+1. Copy formatted content from any application (Word, Google Docs, web pages, etc.)
+2. Open Raycast and run "Convert Clipboard to Markdown"
+3. Converted Markdown is automatically copied back to your clipboard
+
+> **Note**: The Raycast extension shares the same conversion logic as the browser extension but is still being refined for optimal user experience. It requires Raycast 1.26.0+ and macOS.
+
 ## Getting Started
 
 ### 1. Install Node.js (Mac)
@@ -67,11 +81,17 @@ npm install
 
 ### 3. Build the extension
 
+**For Chrome/Edge extension:**
 ```bash
 npm run build
 ```
-
 The compiled assets are emitted to `dist/`.
+
+**For Raycast extension (optional):**
+```bash
+npm run build:raycast
+```
+Builds the Raycast extension in `raycast/dist/`.
 
 ### 4. Load the unpacked extension in Chrome
 
@@ -100,11 +120,17 @@ The compiled assets are emitted to `dist/`.
 
 ### 6. (Optional) Start a development watch task
 
+**For Chrome/Edge extension:**
 ```bash
 npm run dev
 ```
-
 This runs esbuild in watch mode and mirrors static assets into `dist/` whenever they change.
+
+**For Raycast extension:**
+```bash
+npm run dev:raycast
+```
+Starts Raycast development mode for testing the extension locally.
 
 ### 7. Run regression tests
 
@@ -112,7 +138,7 @@ This runs esbuild in watch mode and mirrors static assets into `dist/` whenever 
 npm test
 ```
 
-Exercises the Word desktop, Word Online, and Google Docs HTML fixtures in `test/` to ensure the Markdown output stays consistent.
+Exercises the Word desktop, Word Online, and Google Docs HTML fixtures in `test/` to ensure the Markdown output stays consistent across both Chrome and Raycast platforms.
 
 ### Debugging clipboard captures
 
@@ -136,15 +162,24 @@ localStorage.removeItem('mdconv.debugClipboard');
 ## Project Structure
 
 ```
-static/           # Manifest, popup HTML/CSS, placeholder icons
-src/              # TypeScript source files
-  ├── popup.ts          # Popup interface logic
-  ├── background.ts     # Service worker & context menu handling
-  ├── content-script.ts # Content script for HTML selection conversion
-  └── converter.ts      # Core HTML-to-Markdown conversion logic
-dist/             # Build output (generated)
-test/             # Test fixtures and conversion verification
-PRD.md            # Product requirements document
+static/                    # Chrome extension manifest, popup HTML/CSS, icons
+src/
+  ├── core/                # Shared conversion logic
+  │   ├── converter.ts     # Core HTML-to-Markdown conversion
+  │   └── adapters/        # Platform abstraction interfaces
+  ├── platforms/
+  │   ├── chrome/          # Chrome/Edge extension implementation
+  │   │   ├── popup.ts     # Browser popup interface
+  │   │   ├── background.ts# Service worker & context menu
+  │   │   └── content-script.ts # HTML selection conversion
+  │   └── raycast/         # Raycast extension (work in progress)
+  │       ├── convert-clipboard.tsx # Raycast command UI
+  │       └── adapters/    # Raycast-specific clipboard handling
+raycast/                   # Raycast extension package
+dist/                      # Chrome extension build output
+test/                      # Test fixtures and conversion verification
+scripts/                   # Build and version sync utilities
+PRD.md                     # Product requirements document
 ```
 
 ## Credits
