@@ -15,141 +15,73 @@ This document prioritizes engineering improvements specifically for **LLM mainta
 
 ## 🚀 High Priority (Next Sprint)
 
-### 🥇 2. Configuration Management
-- **Effort**: Medium (4-6 hours)
-- **LLM ROI**: VERY HIGH
-- **Problem**: Configuration scattered across 10+ locations
-- **Current Pain Points**:
+### 🥇 2. Simple Error Consistency 
+- **Effort**: Small (1-2 hours)
+- **LLM ROI**: HIGH  
+- **Problem**: Inconsistent error variable naming
+- **Current Reality**:
   ```typescript
-  // Scattered everywhere:
-  ConversionOptions        // Multiple files
-  MDCONV_DEBUG            // Environment variables  
-  MDCONV_DEBUG_INLINE     // Environment variables
-  MDCONV_DEBUG_CLIPBOARD  // Environment variables
-  localStorage settings   // Chrome popup
-  Raycast preferences     // package.json
-  Default values          // Hardcoded in functions
+  } catch (error) { /* most places */ }
+  } catch (err) { /* some places */ }  
+  } catch (messageError) { /* one place */ }
   ```
-- **LLM Benefits**:
-  - ✅ Single source of truth for ALL behavior
-  - ✅ Clear environment variable mapping
-  - ✅ Predictable configuration structure
-  - ✅ Easy debugging and modification
+- **Simple Fix**: Standardize to `error` everywhere
+- **LLM Benefit**: Consistent scanning pattern
 
 #### Implementation Plan:
-```typescript
-// src/core/config/index.ts
-interface AppConfig {
-  conversion: {
-    imageHandling: ImageHandlingMode;
-    customRules?: TurndownRule[];
-  };
-  debugging: {
-    enabled: boolean;
-    components: LogComponent[];
-    inline: boolean;
-    clipboard: boolean;
-  };
-  platform: {
-    chrome: ChromeConfig;
-    raycast: RaycastConfig;
-  };
-}
-
-// Single function to resolve all configuration
-function getConfig(overrides?: Partial<AppConfig>): AppConfig
-```
+Just rename inconsistent catch variable names. No new classes or infrastructure.
 
 #### Files to Update:
-- [ ] Create `src/core/config/index.ts`
-- [ ] Update `src/core/converter.ts` to use centralized config
-- [ ] Update all adapters to use centralized config  
-- [ ] Update Chrome popup to use centralized config
-- [ ] Update Raycast preferences integration
-- [ ] Add configuration validation
-- [ ] Add tests for configuration resolution
+- [ ] Find and fix `} catch (err)` → `} catch (error)`
+- [ ] Find and fix `} catch (messageError)` → `} catch (error)`
 
 ---
 
-### 🥈 3. Error Handling Standardization  
-- **Effort**: Small (2-3 hours)
-- **LLM ROI**: HIGH
-- **Problem**: Inconsistent error patterns across 25+ catch blocks
-- **Current Pain Points**:
-  ```typescript
-  // Inconsistent patterns:
-  } catch (error) { /* log and return null */ }
-  } catch (err) { /* throw with custom message */ }  
-  } catch (messageError) { /* different handling */ }
-  ```
-- **LLM Benefits**:
-  - ✅ Consistent error classification
-  - ✅ Predictable recovery strategies  
-  - ✅ Structured error context
-  - ✅ Clear error tracing
-
-#### Implementation Plan:
-```typescript
-// src/core/errors/index.ts
-class ConversionError extends Error {
-  constructor(
-    message: string,
-    public readonly code: ErrorCode,
-    public readonly component: LogComponent,
-    public readonly recoverable: boolean = false,
-    public readonly cause?: Error
-  ) {}
-}
-
-// Standard error handling wrapper
-function handleError<T>(
-  operation: () => T,
-  component: LogComponent,
-  fallback?: T
-): T | null
-```
-
-#### Files to Update:
-- [ ] Create `src/core/errors/index.ts`
-- [ ] Standardize all clipboard adapter error handling
-- [ ] Standardize all DOM parser error handling
-- [ ] Standardize conversion error handling
-- [ ] Add error recovery strategies
-- [ ] Add tests for error scenarios
-
----
-
-## 🛠️ Medium Priority
-
-### 🥉 4. Factory Pattern Enhancement
+### 🥈 3. Documentation Comments
 - **Effort**: Small (1-2 hours)
 - **LLM ROI**: MEDIUM-HIGH
-- **Problem**: Hard-coded service instantiation
-- **Current**:
-  ```typescript
-  export const chromeConverter = new ChromeConversionService();
-  ```
-- **Improved**:
-  ```typescript
-  export function createChromeConverter(config?: AppConfig): ConversionService {
-    return new ConversionService({
-      clipboard: new ChromeClipboardAdapter(config?.platform.chrome),
-      domParser: new ChromeDOMParserAdapter(),
-      config
-    });
-  }
-  ```
+- **Problem**: Functions lack JSDoc comments explaining their purpose
+- **Simple Fix**: Add JSDoc to main functions
+- **LLM Benefit**: Clear function purpose without reading implementation
 
-### 🎯 5. Type Safety Improvements
-- **Effort**: Medium (3-4 hours)  
-- **LLM ROI**: MEDIUM
-- **Problem**: Extensive use of `| null | undefined` and `any` types
-- **LLM Impact**: Reduces cognitive load for understanding data flow
+#### Implementation Plan:
+```typescript
+/**
+ * Converts HTML content to Markdown format with platform-specific optimizations.
+ * Handles Word, Google Docs, and web content with configurable image processing.
+ */
+export function convertHtmlToMarkdown(html: string, options: ConversionOptions = {}): string
+```
 
-### 🔌 6. Plugin Architecture (Optional)
-- **Effort**: Large (6-8 hours)
-- **LLM ROI**: LOW-MEDIUM  
-- **Note**: May be over-engineering for current scope
+---
+
+### 🥉 4. Type Alias Cleanup (MAYBE)
+- **Effort**: Small (1 hour)
+- **Problem**: Some repetitive `| null | undefined` patterns
+- **Simple Fix**: Create a few common type aliases like `Maybe<T>`
+- **Decision**: Only if it actually improves readability
+
+---
+
+## 🛠️ Medium Priority (Consider Carefully)
+
+### ❓ 5. Configuration Documentation  
+- **Effort**: Small (30 min)
+- **Problem**: No single place to see all environment variables
+- **Simple Fix**: Add a section to README.md listing all env vars
+- **Decision**: Only if actually needed
+
+### ❓ 6. Remove Unused Code
+- **Effort**: Small (1 hour)  
+- **Problem**: Might have dead code after refactoring
+- **Simple Fix**: Run a dead code detector
+- **Decision**: Only if it actually exists
+
+### ❌ AVOID: Over-Engineering Traps
+- ❌ Configuration Management System (the current setup is fine!)
+- ❌ Plugin Architecture (not needed for this scope)
+- ❌ Complex Factory Patterns (singletons work fine)
+- ❌ Error Classification Systems (simple logging is enough)
 
 ---
 
@@ -175,34 +107,33 @@ function handleError<T>(
 
 ---
 
-## 📊 ROI Summary
+## 📊 ROI Summary (Reality Check)
 
-| Improvement | LLM Benefit | Dev Effort | ROI Score |
-|------------|-------------|------------|-----------|
-| ✅ Logging | Scannable patterns | Small | ✅ DONE |
-| 🥇 Configuration | Single source of truth | Medium | 🔥 VERY HIGH |
-| 🥈 Error Handling | Consistent patterns | Small | ⚡ HIGH |
-| 🥉 Factory Pattern | Clear dependencies | Small | 📈 MED-HIGH |
-| 🎯 Type Safety | Reduced ambiguity | Medium | 📊 MEDIUM |
-| 🔌 Plugin System | Flexible architecture | Large | 🤔 LOW-MED |
+| Improvement | LLM Benefit | Dev Effort | ROI Score | Reality Check |
+|------------|-------------|------------|-----------|---------------|
+| ✅ Logging | Scannable patterns | Small | ✅ DONE | Actually helpful |
+| � Error Naming | Consistent scanning | Tiny | ⚡ HIGH | Easy win |
+| � JSDoc Comments | Function clarity | Small | 📈 MED-HIGH | Actually useful |
+| ❓ Config Docs | Reference guide | Tiny | 📊 MEDIUM | Maybe helpful |
+| ❌ ~~Config System~~ | ~~Centralization~~ | ~~Large~~ | ❌ NEGATIVE | Over-engineering |
+| ❌ ~~Error Classes~~ | ~~Structure~~ | ~~Medium~~ | ❌ NEGATIVE | Over-engineering |
 
 ---
 
-## 🎯 Success Metrics
+## 🎯 Success Metrics (Realistic)
 
 ### For LLMs:
-- [ ] Configuration discoverable in single file
-- [ ] Error patterns consistent across codebase
-- [ ] Dependencies explicit and traceable
-- [ ] Behavior predictable from configuration
+- [ ] Error variable names consistent (`error` not `err`)
+- [ ] Main functions have clear JSDoc comments
+- [ ] No dead code cluttering the codebase
 
-### For Humans:
-- [ ] All tests passing
-- [ ] No breaking changes to APIs
-- [ ] Clear upgrade path for existing usage
-- [ ] Documentation updated
+### For Humans:  
+- [ ] All tests still passing
+- [ ] No breaking changes
+- [ ] Improved code readability
 
 ---
 
 *Last updated: September 28, 2025*
-*Next recommended: Configuration Management implementation*
+*Next recommended: Simple error variable standardization (15 minutes)*
+*Lesson learned: Keep improvements small and pragmatic - avoid over-engineering!*
