@@ -4,6 +4,8 @@ A Chrome/Edge extension that transforms rich text from your clipboard into polis
 
 Created with a lot of help from Copilot in VS Code, using GPT-5-Codex and Sonnet 4 models. 
 
+⚠️ As of 2025-09-28 this extension has been submitted to the Chrome and Edge extension stores. I will update with links once available. In the meantime, to use this please follow "Getting Started" below. ⚠️
+
 ## Features
 
 - **One-click conversion** – Read HTML from the clipboard and convert it to Markdown using [Turndown](https://github.com/mixmark-io/turndown).
@@ -21,6 +23,20 @@ Created with a lot of help from Copilot in VS Code, using GPT-5-Codex and Sonnet
 
 ![Screenshot of Markdown Clipboard Converter](docs/screenshot.png)
 
+## Usage
+
+### Method 1: Extension Popup
+1. Click the extension icon to open the popup.
+2. Press **Paste & Convert** or press `Cmd/Ctrl + V` with formatted content on your clipboard.
+3. The Markdown appears in the output area and is automatically copied back to your clipboard so you can paste it wherever it's needed.
+
+### Method 2: Context Menu (New!)
+1. Select any formatted text on a webpage, document, or local HTML file.
+2. Right-click on the selection and choose **"Copy as Markdown"** from the context menu.
+3. The converted Markdown is automatically copied to your clipboard – no popup needed!
+4. A green checkmark (✓) badge appears on the extension icon to confirm successful conversion.
+
+> **Clipboard permissions**: Chrome will prompt for clipboard permissions when first reading or writing. Accept the prompt so the extension can function correctly.
 
 ## Getting Started
 
@@ -98,21 +114,6 @@ npm test
 
 Exercises the Word desktop, Word Online, and Google Docs HTML fixtures in `test/` to ensure the Markdown output stays consistent.
 
-## Usage
-
-### Method 1: Extension Popup
-1. Click the extension icon to open the popup.
-2. Press **Paste & Convert** or press `Cmd/Ctrl + V` with formatted content on your clipboard.
-3. The Markdown appears in the output area and is automatically copied back to your clipboard so you can paste it wherever it's needed.
-
-### Method 2: Context Menu (New!)
-1. Select any formatted text on a webpage, document, or local HTML file.
-2. Right-click on the selection and choose **"Copy as Markdown"** from the context menu.
-3. The converted Markdown is automatically copied to your clipboard – no popup needed!
-4. A green checkmark (✓) badge appears on the extension icon to confirm successful conversion.
-
-> **Clipboard permissions**: Chrome will prompt for clipboard permissions when first reading or writing. Accept the prompt so the extension can function correctly.
-
 ### Debugging clipboard captures
 
 If clipboard conversion behaves differently in the popup than in your automated tests, enable the built-in logging flag to capture the raw payload:
@@ -146,6 +147,10 @@ test/             # Test fixtures and conversion verification
 PRD.md            # Product requirements document
 ```
 
+## Credits
+
+* @nahals for original inspiration, Windows usage, and more
+* This extension builds on the amazing [Turndown](https://github.com/mixmark-io/turndown) library
 
 ## License
 
