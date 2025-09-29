@@ -1,5 +1,6 @@
 import { Clipboard } from "@raycast/api";
 import { ClipboardAdapter } from "../../../core/adapters/index.js";
+import { mdlog } from "../../../core/logging.js";
 
 const debugProcess = (globalThis as typeof globalThis & {
   process?: { env?: Record<string, string | undefined> };
@@ -64,7 +65,7 @@ export class RaycastClipboardAdapter implements ClipboardAdapter {
   debugLog('No HTML content found in clipboard');
       return null;
     } catch (error) {
-      console.warn('Failed to read HTML from clipboard:', error);
+      mdlog('warn', 'clipboard', 'Failed to read HTML from clipboard', error);
       return null;
     }
   }
@@ -78,7 +79,7 @@ export class RaycastClipboardAdapter implements ClipboardAdapter {
       }
       return null;
     } catch (error) {
-      console.warn('Failed to read text from clipboard:', error);
+      mdlog('warn', 'clipboard', 'Failed to read text from clipboard', error);
       return null;
     }
   }
@@ -87,7 +88,7 @@ export class RaycastClipboardAdapter implements ClipboardAdapter {
     try {
       await Clipboard.copy(text);
     } catch (error) {
-      console.error('Failed to write text to clipboard:', error);
+      mdlog('error', 'clipboard', 'Failed to write text to clipboard', error);
       throw error;
     }
   }

@@ -1,4 +1,5 @@
 import { ClipboardAdapter } from "../../../core/adapters/index.js";
+import { mdlog } from "../../../core/logging.js";
 
 /**
  * Chrome extension clipboard adapter using the browser's clipboard API.
@@ -15,7 +16,7 @@ export class ChromeClipboardAdapter implements ClipboardAdapter {
       }
       return null;
     } catch (error) {
-      console.warn('Failed to read HTML from clipboard:', error);
+      mdlog('warn', 'clipboard', 'Failed to read HTML from clipboard', error);
       return null;
     }
   }
@@ -24,7 +25,7 @@ export class ChromeClipboardAdapter implements ClipboardAdapter {
     try {
       return await navigator.clipboard.readText();
     } catch (error) {
-      console.warn('Failed to read text from clipboard:', error);
+      mdlog('warn', 'clipboard', 'Failed to read text from clipboard', error);
       return null;
     }
   }
@@ -33,7 +34,7 @@ export class ChromeClipboardAdapter implements ClipboardAdapter {
     try {
       await navigator.clipboard.writeText(text);
     } catch (error) {
-      console.error('Failed to write text to clipboard:', error);
+      mdlog('error', 'clipboard', 'Failed to write text to clipboard', error);
       throw error;
     }
   }

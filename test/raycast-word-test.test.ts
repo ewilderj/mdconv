@@ -30,15 +30,10 @@ async function readFixture(filename: string): Promise<string> {
 
 test("Raycast Word clipboard capture", async () => {
   const html = await readFixture("raycast-word-capture.html");
-  console.log("HTML length:", html.length);
-  console.log("HTML preview:", html.substring(0, 500));
   
   const markdown = convertClipboardPayload(html, undefined, {
     domParserAdapter: createDomParser(),
   }).trim();
-  
-  console.log("Converted markdown:", markdown.substring(0, 500));
-  console.log("Full markdown length:", markdown.length);
   
   // Basic validation
   assert.ok(markdown.length > 0, "Should produce non-empty markdown");

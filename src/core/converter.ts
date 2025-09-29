@@ -1,5 +1,6 @@
 import TurndownService from "turndown";
 import { DOMParserAdapter } from "./adapters/index.js";
+import { mdlog } from "./logging.js";
 
 /**
  * How to handle images during HTML to Markdown conversion.
@@ -1209,8 +1210,8 @@ export function convertHtmlToMarkdown(html: string, options: ConversionOptions =
     process?: { env?: Record<string, string | undefined> };
   }).process;
   if (debugProcess?.env?.MDCONV_DEBUG_INLINE === "1" && normalized.includes("monospace")) {
-    console.error("Normalized:\n", normalized);
-    console.error("Markdown:\n", markdown);
+    mdlog('debug', 'converter', 'Normalized HTML:', normalized);
+    mdlog('debug', 'converter', 'Resulting Markdown:', markdown);
   }
   return markdown.replace(/\u00a0/g, " ").replace(/[ \t]+\n/g, "\n");
 }

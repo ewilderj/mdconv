@@ -1,6 +1,7 @@
 import { DOMParser, parseHTML } from "linkedom";
 
 import { DOMParserAdapter } from "../../../core/adapters/index.js";
+import { mdlog } from "../../../core/logging.js";
 
 /**
  * Raycast DOM parser adapter with enhanced HTML parsing.
@@ -26,7 +27,7 @@ export class RaycastDOMParserAdapter implements DOMParserAdapter {
     const doc = parser.parseFromString(html, type as any);
     return doc as unknown as Document;
     } catch (error) {
-      console.error("linkedom parsing failed:", error);
+      mdlog('error', 'dom-parser', 'linkedom parsing failed', error);
       // Fallback to enhanced parsing
       return this.createEnhancedDocument(html);
     }
