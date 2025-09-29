@@ -5,6 +5,18 @@
   "description": "Convert rich text from clipboard into Markdown format",
   "icon": "icon.png",
   "author": "ewilderj",
+  "keywords": [
+    "markdown",
+    "converter",
+    "clipboard",
+    "rich text",
+    "word",
+    "google docs",
+    "html"
+  ],
+  "platforms": [
+    "macOS"
+  ],
   "categories": [
     "Developer Tools",
     "Productivity"
