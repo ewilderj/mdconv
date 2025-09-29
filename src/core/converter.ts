@@ -1130,6 +1130,22 @@ function createTurndownService(imageHandling: ImageHandlingMode = 'preserve'): T
     },
   });
 
+  // Custom rule to handle links and strip all title attributes for better compatibility
+  turndownInstance.addRule("links", {
+    filter: "a",
+    replacement: function (content, node) {
+      const element = node as HTMLAnchorElement;
+      const href = element.getAttribute('href') || '';
+      
+      if (!href) {
+        return content;
+      }
+      
+      // Always return links without title attributes for maximum compatibility
+      return `[${content}](${href})`;
+    },
+  });
+
   // Custom rule to handle images based on configuration
   turndownInstance.addRule("images", {
     filter: "img",

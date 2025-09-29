@@ -33,6 +33,13 @@ const FIXTURES = [
   },
 ];
 
+// Outlook-specific test fixture
+const OUTLOOK_FIXTURE = {
+  name: "Outlook web HTML",
+  file: "raw_outlook_web.html",
+  expected: "expected_markdown_outlook.md",
+};
+
 const globalsDom = new JSDOM("<!doctype html><html><body></body></html>");
 const globalsWindow = globalsDom.window;
 
@@ -105,5 +112,22 @@ test("Word HTML with inline images converts to expected Markdown", async () => {
     markdown,
     expectedMarkdown,
     "raw_word_image.html should convert to expected markdown output",
+  );
+});
+
+test("Outlook web HTML converts to expected Markdown", async () => {
+  const [html, expectedMarkdown] = await Promise.all([
+    readFixture(OUTLOOK_FIXTURE.file),
+    readFixture(OUTLOOK_FIXTURE.expected).then((markdown) => markdown.trim()),
+  ]);
+
+  const markdown = convertClipboardPayload(html, undefined, {
+    domParserAdapter: createDomParser(),
+  }).trim();
+
+  assert.equal(
+    markdown,
+    expectedMarkdown,
+    "raw_outlook_web.html should convert to expected markdown output",
   );
 });
