@@ -18,3 +18,8 @@ pnpm-debug.log*
 .env.*
 .vscode/
 coverage/
+
+# Word temporary files
+~$*.doc*
+~$*.xls*
+~$*.ppt*
