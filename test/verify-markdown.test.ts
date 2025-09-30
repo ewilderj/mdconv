@@ -131,3 +131,20 @@ test("Outlook web HTML converts to expected Markdown", async () => {
     "raw_outlook_web.html should convert to expected markdown output",
   );
 });
+
+test("Raycast Unicode HTML converts correctly", async () => {
+  const [html, expectedMarkdown] = await Promise.all([
+    readFixture("raycast_unicode_raw.html"),
+    readFixture("expected_markdown_raycast_unicode.md").then((markdown) => markdown.trim()),
+  ]);
+
+  const markdown = convertClipboardPayload(html, undefined, {
+    domParserAdapter: createDomParser(),
+  }).trim();
+
+  assert.equal(
+    markdown,
+    expectedMarkdown,
+    "raycast_unicode_raw.html should convert to expected markdown output with proper Unicode handling",
+  );
+});
