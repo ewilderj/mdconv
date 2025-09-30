@@ -9,7 +9,7 @@
 - Raycast's native `Clipboard.read()` still exposes **only plain text**, so we must keep using the `pbpaste` pathway for HTML capture.
 
 ## Reproducing the Issue
-Run the diagnostic command from Raycast (command palette → "Diagnose Clipboard") after copying `🎯 Next: This month's work has concluded.` from a browser. The command lives at `src/platforms/raycast/diagnose-clipboard.tsx` and exercises the code paths listed below.
+Run the diagnostic command from Raycast (command palette → "Diagnose Clipboard") after copying `🎯 Next: This month's work has concluded.` from a browser. The command lives at `src/platforms/raycast/diagnose-clipboard.tsx` and exercises the code paths listed below. It is intentionally removed from the production manifest; see **Re-enabling the Command** if you need to bring it back locally.
 
 ### Behavior Before Locale Fix
 | Test | Observation |
@@ -36,6 +36,18 @@ The native API does not expose the HTML track, so we cannot replace the `pbpaste
 - Locale normalization lives in `src/platforms/raycast/adapters/raycast-clipboard.ts#getExecOptions()`.
 - Every `execSync` invocation that touches `pbpaste` spreads those options to ensure `LANG` and `LC_ALL` end with `.UTF-8`.
 - The diagnostic command doubles as a regression test; keep it updated if we change clipboard strategies.
+
+## Re-enabling the Command
+Add this object back into the `commands` array of `raycast/package.json` and rebuild with `npm run build:raycast`:
+
+```json
+{
+	"name": "diagnose-clipboard",
+	"title": "Diagnose Clipboard Emoji",
+	"description": "Debug tool to test emoji handling in clipboard",
+	"mode": "view"
+}
+```
 
 ## How to Verify
 1. `npm run build:raycast`

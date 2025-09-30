@@ -14,10 +14,21 @@ We normalize the locale before every clipboard shell call:
 Implementation lives in `src/platforms/raycast/adapters/raycast-clipboard.ts` via `getExecOptions()`. The adapter now spreads those options into each `pbpaste` invocation.
 
 ## Verification
-The `Diagnose Clipboard` Raycast command (`src/platforms/raycast/diagnose-clipboard.tsx`) exercises the pipeline inside Raycast:
+The optional `Diagnose Clipboard` Raycast command (`src/platforms/raycast/diagnose-clipboard.tsx`) exercises the pipeline inside Raycast:
 - Without normalization: HTML length 778, `Contains 🎯: ❌ NO`, replacement bytes `3f3f` present.
 - With normalization: HTML length 781, `Contains 🎯: ✅ YES`, emoji bytes `f09f8eaf` present.
 - `Clipboard.read()` still exposes plain text only; HTML remains unavailable, so the `pbpaste` path stays authoritative.
+
+> The command is no longer listed in `raycast/package.json` to keep production builds clean. To temporarily restore it, re-add the following object to the `commands` array and rebuild Raycast:
+
+```json
+{
+	"name": "diagnose-clipboard",
+	"title": "Diagnose Clipboard Emoji",
+	"description": "Debug tool to test emoji handling in clipboard",
+	"mode": "view"
+}
+```
 
 Additional automated coverage comes from the Markdown verification suite (`npm test`) and from running `npm run build:raycast` prior to shipping.
 

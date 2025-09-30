@@ -28,12 +28,6 @@
       "title": "Convert Clipboard to Markdown",
       "description": "Convert rich text from clipboard into Markdown format",
       "mode": "view"
-    },
-    {
-      "name": "diagnose-clipboard",
-      "title": "Diagnose Clipboard Emoji",
-      "description": "Debug tool to test emoji handling in clipboard",
-      "mode": "view"
     }
   ],
   "preferences": [

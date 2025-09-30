@@ -18,14 +18,10 @@ declare type Preferences = ExtensionPreferences
 declare namespace Preferences {
   /** Preferences accessible in the `convert-clipboard` command */
   export type ConvertClipboard = ExtensionPreferences & {}
-  /** Preferences accessible in the `diagnose-clipboard` command */
-  export type DiagnoseClipboard = ExtensionPreferences & {}
 }
 
 declare namespace Arguments {
   /** Arguments passed to the `convert-clipboard` command */
   export type ConvertClipboard = {}
-  /** Arguments passed to the `diagnose-clipboard` command */
-  export type DiagnoseClipboard = {}
 }
 
