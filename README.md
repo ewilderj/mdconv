@@ -8,7 +8,9 @@ A multi-platform clipboard converter that transforms rich text into polished Mar
 
 Created with a lot of help from Copilot in VS Code, using GPT-5-Codex and Sonnet 4 models. 
 
-⚠️ As of 2025-09-28 this extension has been submitted to the Chrome and Edge extension stores. I will update with links once available. In the meantime, to use this please follow "Getting Started" below. ⚠️
+**Install for Microsoft Edge** – [Markdown Converter for the web, Word, and Google Docs](https://microsoftedge.microsoft.com/addons/detail/markdown-converter-for-th/jhgdmdnfelimaoponohkkimlfbgnadam) 
+
+⚠️ As of 2025-09-28 this extension has been submitted to the Chrome extension store. I will update with the link once available. In the meantime, to use this on Chrome, please follow "Getting Started" below. ⚠️
 
 ## Features
 
