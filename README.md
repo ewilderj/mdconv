@@ -8,9 +8,9 @@ A multi-platform clipboard converter that transforms rich text into polished Mar
 
 Created with a lot of help from Copilot in VS Code, using GPT-5-Codex and Sonnet 4 models. 
 
-**Install for Microsoft Edge** – [Markdown Converter for the web, Word, and Google Docs](https://microsoftedge.microsoft.com/addons/detail/markdown-converter-for-th/jhgdmdnfelimaoponohkkimlfbgnadam) 
+**Install for Google Chrome** – [Markdown Converter for the web, Word, and Google Docs](https://chromewebstore.google.com/detail/markdown-converter-for-th/bnfjgeonjiooklgimcmobnkeibiiaamp)
 
-⚠️ As of 2025-09-28 this extension has been submitted to the Chrome extension store. I will update with the link once available. In the meantime, to use this on Chrome, please follow "Getting Started" below. ⚠️
+**Install for Microsoft Edge** – [Markdown Converter for the web, Word, and Google Docs](https://microsoftedge.microsoft.com/addons/detail/markdown-converter-for-th/jhgdmdnfelimaoponohkkimlfbgnadam) 
 
 ## Features
 
@@ -54,7 +54,7 @@ A native Raycast command for clipboard conversion is in development:
 
 > **Note**: The Raycast extension shares the same conversion logic as the browser extension but is still being refined for optimal user experience. It requires Raycast 1.26.0+ and macOS.
 
-## Getting Started
+## Getting Started With Development
 
 ### 1. Install Node.js (Mac)
 
