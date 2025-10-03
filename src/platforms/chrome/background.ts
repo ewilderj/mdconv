@@ -19,7 +19,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         response = await chrome.tabs.sendMessage(tab.id, {
           action: "convertSelection"
         });
-      } catch (messageError) {
+      } catch (error) {
         // If content script isn't available, inject it and try again
         await chrome.scripting.executeScript({
           target: { tabId: tab.id },

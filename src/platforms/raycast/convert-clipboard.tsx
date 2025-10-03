@@ -47,8 +47,8 @@ export default function ConvertClipboard() {
           message: "No rich text found in clipboard"
         });
       }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
       setError(errorMessage);
       await showToast({
         style: Toast.Style.Failure,
