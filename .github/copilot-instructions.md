@@ -26,8 +26,57 @@
 - When adding tests, follow the existing fixture-based patterns in `test/` and ensure they pass via `npm test`.
 - Communicate assumptions, keep responses skimmable, and close the loop with build/test verification.
 
+## Code quality standards (from completed TODO items)
+Always follow these patterns that have been established as best practices:
+
+### Consistent Error Handling
+- **Use `error` consistently** in catch blocks, never `err`, `messageError`, or other variants
+- **Pattern:** `} catch (error) { /* consistently named */ }`
+- **Rationale:** LLM scanning patterns and code readability
+
+### Documentation Standards  
+- **Add JSDoc comments** to all exported functions in `src/core/`
+- **Include:** Purpose, parameters with types, return value, and key behavior notes
+- **Rationale:** LLMs can understand function purpose without reading full implementation
+
+### Configuration Management
+- **Use centralized environment access** via `src/core/env.ts` for all environment variables
+- **Reference:** `CONFIG.md` for complete environment variable documentation
+- **Avoid:** Direct `process.env` access scattered throughout codebase
+- **Rationale:** Single source of truth, reduced duplication, test compatibility
+
+### Simplify Over Abstractions
+- **Prefer simple functions** over classes when possible
+- **Avoid boilerplate:** Don't create service classes with single-use methods
+- **Check for dead code:** Regularly run `npx ts-unused-exports tsconfig.json --ignoreTestFiles`
+- **Rationale:** Maintainability and reduced cognitive load
+
+### Environment Patterns
+- **Debug flags:** Use `debugConfig` from `src/core/env.ts` for all MDCONV_* variables
+- **Locale handling:** Use `createUtf8Env()` helper for pbpaste operations  
+- **Lazy evaluation:** Environment should re-evaluate on each access for test compatibility
+
+## Quality gate checklist
+Before concluding any substantial code change, ask:
+1. ✅ Are all catch blocks using `error` (not `err`/`messageError`)?
+2. ✅ Do exported functions have proper JSDoc documentation?
+3. ✅ Is environment access through the centralized `src/core/env.ts`?
+4. ✅ Have I checked for unused exports and simplified unnecessary abstractions?
+5. ✅ Do tests pass and builds work for both platforms?
+
+Run: `npm run typecheck && npm run build && npm run build:raycast && npm test` before declaring work complete.
+
 ## Handy references
 - Chrome static assets: `static/`
 - Build artifacts: `dist/`
 - Raycast CLI docs: https://developers.raycast.com (for command metadata or publish steps)
 - README & PRD in the repo root capture product expectations—update them if behavior changes.
+- **Configuration reference:** `CONFIG.md` - Complete environment variable documentation
+- **TODO tracking:** `TODO.md` - LLM-oriented improvements and completed items
+
+## Key lessons learned
+- **Consistent patterns matter** more than clever architectures for LLM maintainability
+- **Document configuration** early and centrally - `CONFIG.md` saves future confusion  
+- **Regular cleanup cycles** remove accumulated complexity and prevent technical debt
+- **Quality gates catch issues**: The 5-point checklist above prevents regression of established best practices
+- **LLM-friendly code**: Consistent naming, simple abstractions, and good documentation pay dividends
