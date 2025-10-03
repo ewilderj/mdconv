@@ -33,7 +33,7 @@ export const debugConfig = {
  * System locale information for clipboard operations.
  * Re-evaluates environment on each access for test compatibility.
  */
-export const localeConfig = {
+const localeConfig = {
   /** Current LANG setting */
   get lang(): string | undefined { return getProcessEnv().LANG; },
   

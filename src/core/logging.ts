@@ -3,8 +3,8 @@
  * Provides LLM-readable patterns without over-engineering.
  */
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
-export type LogComponent = 'converter' | 'clipboard' | 'dom-parser' | 'chrome-popup' | 'raycast-ui';
+type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogComponent = 'converter' | 'clipboard' | 'dom-parser' | 'chrome-popup' | 'raycast-ui';
 
 // Simple standardized logging function
 // Creates consistent [mdconv:component] patterns for easy scanning

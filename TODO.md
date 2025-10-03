@@ -62,11 +62,19 @@ This document prioritizes engineering improvements specifically for **LLM mainta
 - **Evidence**: All 31 tests passing, improved code organization
 - **Bonus**: Environment consolidation reduces duplicated process access patterns
 
-### ❓ 6. Remove Unused Code
-- **Effort**: Small (1 hour)  
-- **Problem**: Might have dead code after refactoring
-- **Simple Fix**: Run a dead code detector
-- **Decision**: Only if it actually exists
+### ✅ 6. Remove Unused Code
+- **Status**: ✅ DONE (30 minutes)
+- **Impact**: Simplified conversion services and removed unused exports
+- **Files Updated**: `src/core/env.ts`, `src/core/logging.ts`, `src/platforms/chrome/chrome-converter.ts`, `src/platforms/raycast/raycast-converter.ts`
+- **Changes**:
+  - Removed unused `localeConfig` export (made internal)
+  - Removed unused `LogLevel` and `LogComponent` type exports (made internal)
+  - Simplified Chrome and Raycast conversion services from classes to simple functions
+  - Removed unused class constructors and clipboard adapter instances
+  - Kept backward-compatible method signatures
+- **ROI**: Small - Cleaner code with fewer unused abstractions
+- **Evidence**: All 31 tests passing, builds working for both extensions
+- **Note**: Some exports marked as "unused" are actually used in tests or by Raycast's entry point system
 
 ### ❌ AVOID: Over-Engineering Traps
 - ❌ Configuration Management System (the current setup is fine!)
