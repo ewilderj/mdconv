@@ -7,8 +7,13 @@ export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 export type LogComponent = 'converter' | 'clipboard' | 'dom-parser' | 'chrome-popup' | 'raycast-ui';
 
 /**
- * Simple standardized logging function
- * Creates consistent [mdconv:component] patterns for easy scanning
+ * Simple standardized logging function for mdconv components.
+ * Creates consistent [mdconv:component] patterns for easy scanning by LLMs and humans.
+ * 
+ * @param level - Log severity level ('debug', 'info', 'warn', 'error')
+ * @param component - Component identifier for categorization
+ * @param message - Log message content
+ * @param data - Optional additional data to include in the log
  */
 export function mdlog(level: LogLevel, component: LogComponent, message: string, data?: any): void {
   // Skip debug logs in production/test environments

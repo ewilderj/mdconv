@@ -1185,6 +1185,14 @@ function createTurndownService(imageHandling: ImageHandlingMode = 'preserve'): T
   return turndownInstance;
 }
 
+/**
+ * Converts HTML content to Markdown format with platform-specific optimizations.
+ * Handles Word, Google Docs, and web content with configurable image processing.
+ * 
+ * @param html - The HTML string to convert to Markdown
+ * @param options - Configuration options for conversion behavior
+ * @returns The converted Markdown string, or empty string if input is invalid
+ */
 export function convertHtmlToMarkdown(html: string, options: ConversionOptions = {}): string {
   // Validate input
   if (!html || typeof html !== 'string') {
@@ -1216,6 +1224,15 @@ export function convertHtmlToMarkdown(html: string, options: ConversionOptions =
   return markdown.replace(/\u00a0/g, " ").replace(/[ \t]+\n/g, "\n");
 }
 
+/**
+ * Converts clipboard content to Markdown format with fallback handling.
+ * Prioritizes HTML content over plain text when both are available.
+ * 
+ * @param html - Optional HTML content from clipboard (preferred)
+ * @param plain - Optional plain text content from clipboard (fallback)
+ * @param options - Configuration options for conversion behavior
+ * @returns The converted Markdown string, or empty string if no valid content
+ */
 export function convertClipboardPayload(html?: string, plain?: string, options: ConversionOptions = {}): string {
   // Ensure html is a string before calling trim()
   if (html && typeof html === 'string' && html.trim()) {
