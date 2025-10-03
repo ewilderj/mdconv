@@ -49,11 +49,18 @@ This document prioritizes engineering improvements specifically for **LLM mainta
 
 ## 🛠️ Medium Priority (Consider Carefully)
 
-### ❓ 5. Configuration Documentation  
-- **Effort**: Small (30 min)
-- **Problem**: No single place to see all environment variables
-- **Simple Fix**: Add a section to README.md listing all env vars
-- **Decision**: Only if actually needed
+### ✅ 5. Configuration Documentation  
+- **Status**: ✅ DONE (45 minutes)
+- **Impact**: Centralized environment variable documentation
+- **Files Created**: `CONFIG.md` - comprehensive configuration reference
+- **Changes**: 
+  - Documented all environment variables (`MDCONV_DEBUG`, `MDCONV_DEBUG_INLINE`, `MDCONV_DEBUG_CLIPBOARD`)
+  - Created centralized environment module (`src/core/env.ts`)
+  - Consolidated debug configuration and locale handling
+  - Added cleanup opportunities and pain points
+- **ROI**: Medium - Single source of truth for configuration, reduced code duplication
+- **Evidence**: All 31 tests passing, improved code organization
+- **Bonus**: Environment consolidation reduces duplicated process access patterns
 
 ### ❓ 6. Remove Unused Code
 - **Effort**: Small (1 hour)  

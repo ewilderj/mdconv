@@ -1,6 +1,7 @@
 import TurndownService from "turndown";
 import { DOMParserAdapter } from "./adapters/index.js";
 import { mdlog } from "./logging.js";
+import { debugConfig } from "./env.js";
 
 /**
  * How to handle images during HTML to Markdown conversion.
@@ -1214,10 +1215,7 @@ export function convertHtmlToMarkdown(html: string, options: ConversionOptions =
   
   const markdown = turndownInstance.turndown(normalized);
  
-  const debugProcess = (globalThis as typeof globalThis & {
-    process?: { env?: Record<string, string | undefined> };
-  }).process;
-  if (debugProcess?.env?.MDCONV_DEBUG_INLINE === "1" && normalized.includes("monospace")) {
+  if (debugConfig.inlineDebug && normalized.includes("monospace")) {
     mdlog('debug', 'converter', 'Normalized HTML:', normalized);
     mdlog('debug', 'converter', 'Resulting Markdown:', markdown);
   }

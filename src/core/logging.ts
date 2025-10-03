@@ -6,6 +6,11 @@
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 export type LogComponent = 'converter' | 'clipboard' | 'dom-parser' | 'chrome-popup' | 'raycast-ui';
 
+// Simple standardized logging function
+// Creates consistent [mdconv:component] patterns for easy scanning
+
+import { debugConfig } from "./env.js";
+
 /**
  * Simple standardized logging function for mdconv components.
  * Creates consistent [mdconv:component] patterns for easy scanning by LLMs and humans.
@@ -18,15 +23,8 @@ export type LogComponent = 'converter' | 'clipboard' | 'dom-parser' | 'chrome-po
 export function mdlog(level: LogLevel, component: LogComponent, message: string, data?: any): void {
   // Skip debug logs in production/test environments
   if (level === 'debug') {
-    const isTest = typeof process !== 'undefined' && process.env?.NODE_ENV === 'test';
-    if (isTest) return;
-    
-    // Check for debug environment variable
-    const debugProcess = (globalThis as typeof globalThis & {
-      process?: { env?: Record<string, string | undefined> };
-    }).process;
-    const debugEnabled = debugProcess?.env?.MDCONV_DEBUG === '1';
-    if (!debugEnabled) return;
+    if (debugConfig.isTest) return;
+    if (!debugConfig.allDebug) return;
   }
 
   const prefix = `[mdconv:${component}]`;
