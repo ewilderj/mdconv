@@ -72,7 +72,6 @@ Run: `npm run typecheck && npm run build && npm run build:raycast && npm test` b
 - Raycast CLI docs: https://developers.raycast.com (for command metadata or publish steps)
 - README & PRD in the repo root capture product expectations—update them if behavior changes.
 - **Configuration reference:** `CONFIG.md` - Complete environment variable documentation
-- **TODO tracking:** `TODO.md` - LLM-oriented improvements and completed items
 
 ## Key lessons learned
 - **Consistent patterns matter** more than clever architectures for LLM maintainability

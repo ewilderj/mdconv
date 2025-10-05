@@ -133,4 +133,4 @@ MDCONV_DEBUG_INLINE=1 node scripts/demo-logging.mjs
 
 ---
 
-*This configuration reference is maintained alongside TODO.md improvements to support LLM codebase understanding.*
+*This configuration reference provides a comprehensive overview of mdconv's environment variables and configuration options.*
