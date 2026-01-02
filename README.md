@@ -55,135 +55,13 @@ A native Raycast command for clipboard conversion, on macOS only:
 ![Raycast usage of Markdown Clipboard Converter](docs/screencast.gif)
 
 
-## Getting Started With Development
+## For Developers
 
-### 1. Install Node.js (Mac)
-
-Install Node, preferable through [Homebrew](https://brew.sh/).
-
-### 1. Install Node.js (Windows users)
-
-If you don't have Node.js installed on Windows:
-
-1. Visit [nodejs.org](https://nodejs.org) and download the LTS version (recommended)
-2. Run the installer and follow the installation wizard
-3. Restart your terminal/VS Code after installation
-4. Verify installation by running: `node --version` and `npm --version`
-
-**PowerShell Execution Policy Fix:**
-If you encounter "cannot be loaded because running scripts is disabled" error when using npm:
-```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
-
-### 2. Install dependencies
-
-```bash
-npm install
-```
-
-### 3. Build the extension
-
-**For Chrome/Edge extension:**
-```bash
-npm run build
-```
-The compiled assets are emitted to `dist/`.
-
-**For Raycast extension (optional):**
-```bash
-npm run build:raycast
-```
-Builds the Raycast extension in `raycast/dist/`.
-
-### 4. Load the unpacked extension in Chrome
-
-1. Open `chrome://extensions` in your browser.
-2. Toggle **Developer mode** on (top-right switch).
-3. Click **Load unpacked** and choose the `dist` folder.
-4. The “Markdown Clipboard Converter” icon will appear in the toolbar.
-
-### 5. Load the unpacked extension in Chrome or Edge
-
-**For Chrome:**
-1. Open `chrome://extensions` in your browser.
-2. Toggle **Developer mode** on (top-right switch).
-3. Click **Load unpacked** and choose the `dist` folder.
-4. The "Markdown Clipboard Converter" icon will appear in the toolbar.
-
-**For Microsoft Edge:**
-1. Open `edge://extensions/` in your browser.
-2. Toggle **Developer mode** on (left sidebar).
-3. Click **Load unpacked** and choose the `dist` folder.
-4. The "Markdown Clipboard Converter" icon will appear in the toolbar.
-
-**To pin the extension for easy access:**
-- Click the puzzle piece icon (🧩) in the toolbar, then click the pin icon next to "Markdown Clipboard Converter"
-- **Edge**: Click the puzzle piece icon (🧩) in the toolbar, then click the pin icon next to "Markdown Clipboard Converter"
-
-### 6. (Optional) Start a development watch task
-
-**For Chrome/Edge extension:**
-```bash
-npm run dev
-```
-This runs esbuild in watch mode and mirrors static assets into `dist/` whenever they change.
-
-**For Raycast extension:**
-```bash
-npm run dev:raycast
-```
-Starts Raycast development mode for testing the extension locally.
-
-### 7. Run regression tests
-
-```bash
-npm test
-```
-
-Exercises the Word desktop, Word Online, and Google Docs HTML fixtures in `test/` to ensure the Markdown output stays consistent across both Chrome and Raycast platforms.
-
-### Debugging clipboard captures
-
-If clipboard conversion behaves differently in the popup than in your automated tests, enable the built-in logging flag to capture the raw payload:
-
-1. Open the popup and choose **Inspect** to bring up DevTools.
-2. In the DevTools console, run:
-
-  ```js
-  localStorage.setItem('mdconv.debugClipboard', 'true');
-  ```
-
-3. Paste or click **Paste & Convert** again. The console will log grouped entries containing the raw HTML, plain text, and resulting Markdown so you can copy them into new fixtures.
-
-Disable logging when you're done:
-
-```js
-localStorage.removeItem('mdconv.debugClipboard');
-```
-
-## Project Structure
-
-```
-static/                    # Chrome extension manifest, popup HTML/CSS, icons
-src/
-  ├── core/                # Shared conversion logic
-  │   ├── converter.ts     # Core HTML-to-Markdown conversion
-  │   └── adapters/        # Platform abstraction interfaces
-  ├── platforms/
-  │   ├── chrome/          # Chrome/Edge extension implementation
-  │   │   ├── popup.ts     # Browser popup interface
-  │   │   ├── background.ts# Service worker & context menu
-  │   │   └── content-script.ts # HTML selection conversion
-  │   └── raycast/         # Raycast extension (work in progress)
-  │       ├── convert-clipboard.tsx # Raycast command UI
-  │       └── adapters/    # Raycast-specific clipboard handling
-raycast/                   # Raycast extension package
-dist/                      # Chrome extension build output
-test/                      # Test fixtures and conversion verification
-scripts/                   # Build and version sync utilities
-PRD.md                     # Product requirements document
-```
+See [DEVELOPERS.md](DEVELOPERS.md) for:
+- Architecture overview and platform design
+- Build instructions for Chrome, Firefox, and Raycast
+- Development workflow and testing
+- Code quality standards
 
 ## Credits
 
@@ -192,4 +70,3 @@ PRD.md                     # Product requirements document
 
 ## License
 
-MIT
