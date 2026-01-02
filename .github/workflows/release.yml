@@ -1,0 +1,97 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0-test)'
+        required: true
+        default: '1.0.0-test'
+      draft:
+        description: 'Create as draft release'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run tests
+        run: npm test
+      
+      - name: Type check
+        run: npm run typecheck
+      
+      - name: Build Chrome extension
+        run: npm run build:zip
+      
+      - name: Build Firefox extension
+        run: npm run build:firefox:zip
+      
+      - name: Build Firefox source package
+        run: npm run build:firefox:source
+      
+      - name: Extract version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ steps.version.outputs.VERSION }}
+          tag_name: v${{ steps.version.outputs.VERSION }}
+          body: |
+            ## mdconv ${{ steps.version.outputs.VERSION }}
+            
+            ### Installation
+            
+            **Chrome/Edge/Brave:**
+            - Download `mdconv-extension.zip`
+            - Extract and load unpacked in Chrome
+            - Or upload to Chrome Web Store
+            
+            **Firefox:**
+            - Download `mdconv-firefox.zip`
+            - Upload to Firefox Add-ons store
+            - Source code: `mdconv-firefox-source.zip` (for reviewers)
+            
+            ### Changes
+            
+            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details.
+            
+            ### Verification
+            
+            All builds passed automated tests and type checking.
+          files: |
+            mdconv-extension.zip
+            mdconv-firefox.zip
+            mdconv-firefox-source.zip
+          draft: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.draft == 'true' || false }}
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
