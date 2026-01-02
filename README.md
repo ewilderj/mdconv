@@ -44,15 +44,16 @@ Created with a lot of help from Copilot in VS Code, using GPT-5-Codex and Sonnet
 
 > **Clipboard permissions**: Chrome will prompt for clipboard permissions when first reading or writing. Accept the prompt so the extension can function correctly.
 
-### Raycast Extension (Work in Progress)
+### Raycast Extension (pending review by Raycast)
 
-A native Raycast command for clipboard conversion is in development:
+A native Raycast command for clipboard conversion, on macOS only:
 
 1. Copy formatted content from any application (Word, Google Docs, web pages, etc.)
 2. Open Raycast and run "Convert Clipboard to Markdown"
 3. Converted Markdown is automatically copied back to your clipboard
 
-> **Note**: The Raycast extension shares the same conversion logic as the browser extension but is still being refined for optimal user experience. It requires Raycast 1.26.0+ and macOS.
+![Raycast usage of Markdown Clipboard Converter](docs/screencast.gif)
+
 
 ## Getting Started With Development
 
