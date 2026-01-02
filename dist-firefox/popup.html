@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Markdown Clipboard Converter</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Markdown Converter</h1>
+    </header>
+    <main>
+      <p class="helper-text">Paste formatted content and we'll copy the Markdown for you.</p>
+      <div class="controls">
+        <button id="pasteButton" type="button">Paste &amp; Convert</button>
+      </div>
+      <label class="field">
+        <textarea id="output" placeholder="Converted Markdown appears here" readonly></textarea>
+      </label>
+      <section id="status" role="status" aria-live="polite"></section>
+    </main>
+    <footer>
+      <button id="clearButton" type="button">Clear</button>
+    </footer>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

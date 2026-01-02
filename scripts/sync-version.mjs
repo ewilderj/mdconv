@@ -44,14 +44,16 @@ if (!rootVersion || typeof rootVersion !== 'string') {
 }
 
 const chromeManifestPath = path.join(rootDir, 'static', 'manifest.json');
+const firefoxManifestPath = path.join(rootDir, 'static', 'manifest.firefox.json');
 const raycastPackagePath = path.join(rootDir, 'raycast', 'package.json');
 
 const updates = await Promise.all([
   ensureVersion(chromeManifestPath, 'version'),
+  ensureVersion(firefoxManifestPath, 'version'),
   ensureRaycastPackageVersion(raycastPackagePath)
 ]);
 
-const filesUpdated = [chromeManifestPath, raycastPackagePath].filter((_, index) => updates[index]);
+const filesUpdated = [chromeManifestPath, firefoxManifestPath, raycastPackagePath].filter((_, index) => updates[index]);
 
 if (filesUpdated.length > 0) {
   console.info(`Synced version ${rootVersion} to:\n- ${filesUpdated.map((file) => path.relative(rootDir, file)).join('\n- ')}`);
