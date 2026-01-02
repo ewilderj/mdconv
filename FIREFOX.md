@@ -28,12 +28,19 @@ Port the existing Chrome extension to Firefox by adapting the manifest and lever
 - **Storage**: `browser.storage` works identically to `chrome.storage`
 
 ### 1.3 Browser Namespace Polyfill
-Firefox provides `browser.*` (Promise-based), Chrome provides `chrome.*` (callback-based). Modern Chrome also supports Promises, but we need to handle both:
+Firefox provides `browser.*` (Promise-based), Chrome provides `chrome.*` (callback-based). Modern Chrome (v90+) also supports Promises on most APIs, simplifying cross-browser compatibility.
 
-**Solution**: Use `webextension-polyfill` or simple runtime detection:
+**Solution**: Use simple runtime fallback at entry point:
 ```typescript
-const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+// At top of background.ts, popup.ts, content-script.ts
+globalThis.browser = globalThis.browser || chrome;
+
+// Then use browser.* throughout
+const tabs = browser.tabs;
+const contextMenus = browser.contextMenus;
 ```
+
+**Rationale**: Avoids heavy polyfills and custom wrappers while maintaining compatibility.
 
 ---
 
@@ -113,124 +120,131 @@ Create `static/manifest.firefox.json` with Firefox-specific manifest:
 ```
 src/platforms/firefox/
 ├── background.ts          # Firefox background script
-├── popup.ts              # Firefox popup (same as Chrome)
+├── popup.ts              # Firefox popup (re-exports shared logic)
 ├── content-script.ts     # Firefox content script
 ├── firefox-converter.ts  # Firefox-specific converter wrapper
 └── adapters/
-    ├── firefox-clipboard.ts   # Same as Chrome (uses standard navigator.clipboard)
-    ├── firefox-dom-parser.ts  # Same as Chrome (uses standard DOMParser)
+    ├── firefox-clipboard.ts   # Proxy re-exports Chrome clipboard adapter
+    ├── firefox-dom-parser.ts  # Proxy re-exports Chrome DOM parser adapter
     └── index.ts              # Export Firefox adapters
 ```
 
-#### 2.2 Browser API Abstraction
-Create `src/platforms/firefox/browser-api.ts`:
+**Adapter Reuse Pattern** (mirrors Raycast approach):
+```typescript
+// firefox-clipboard.ts - explicit proxy, no symlinks
+export * from '../../chrome/adapters/chrome-clipboard.js';
+
+// firefox-dom-parser.ts
+export * from '../../chrome/adapters/chrome-dom-parser.js';
+```
+
+**Rationale**: Chrome adapters use standard web APIs (navigator.clipboard, DOMParser), making them 100% compatible with Firefox. Explicit proxy modules maintain type safety and avoid symlink issues.
+
+#### 2.2 Browser API Compatibility
+No separate abstraction layer needed. Use simple fallback pattern:
 
 ```typescript
 /**
- * Cross-browser API wrapper for Chrome/Firefox compatibility.
- * Firefox provides browser.* (Promises), Chrome provides chrome.* (callbacks + Promises).
+ * Cross-browser compatibility shim.
+ * Modern Chrome supports Promises, so we can use browser.* throughout.
  */
 
-// Detect which browser API is available
-const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+// At top of each Firefox platform file (background.ts, popup.ts, content-script.ts)
+globalThis.browser = globalThis.browser || chrome;
 
-export const tabs = browserAPI.tabs;
-export const contextMenus = browserAPI.contextMenus;
-export const scripting = browserAPI.scripting;
-export const runtime = browserAPI.runtime;
-export const action = browserAPI.action || (browserAPI as any).browserAction;
+// Then use browser.* APIs directly - they work in both Firefox and Chrome
+import { convertClipboardToMarkdown } from "../../core/converter.js";
+import { firefoxClipboard, firefoxDomParser } from "./adapters/index.js";
 
-/**
- * Promisify chrome.* APIs if needed (Firefox already uses Promises)
- */
-export function sendMessage<T = any>(tabId: number, message: any): Promise<T> {
-  if (typeof browser !== 'undefined') {
-    return browser.tabs.sendMessage(tabId, message) as Promise<T>;
-  }
-  // Chrome callback → Promise wrapper
-  return new Promise((resolve, reject) => {
-    chrome.tabs.sendMessage(tabId, message, (response) => {
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError.message));
-      } else {
-        resolve(response);
-      }
-    });
-  });
-}
+// All browser APIs return Promises in modern Chrome & Firefox
+await browser.contextMenus.create({...});
+const tabs = await browser.tabs.query({...});
+const response = await browser.tabs.sendMessage(tabId, message);
 ```
+
+**What Changed**: Eliminated 150+ lines of wrapper code by relying on modern Chrome's Promise support. This approach is simpler, more maintainable, and reduces potential bugs.
 
 #### 2.3 Firefox Background Script
 `src/platforms/firefox/background.ts`:
 
 ```typescript
-import { contextMenus, runtime, action, scripting, sendMessage } from './browser-api.js';
+// Cross-browser compatibility shim
+globalThis.browser = globalThis.browser || chrome;
 
-runtime.onInstalled.addListener(() => {
-  contextMenus.create({
+browser.runtime.onInstalled.addListener(() => {
+  browser.contextMenus.create({
     id: "copyAsMarkdown",
     title: "Copy as Markdown",
     contexts: ["selection"]
   });
 });
 
-contextMenus.onClicked.addListener(async (info, tab) => {
+browser.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === "copyAsMarkdown" && info.selectionText && tab?.id) {
     try {
       let response;
       
       try {
-        response = await sendMessage(tab.id, { action: "convertSelection" });
+        response = await browser.tabs.sendMessage(tab.id, { action: "convertSelection" });
       } catch (error) {
         // Inject content script if not available
-        await scripting.executeScript({
+        await browser.scripting.executeScript({
           target: { tabId: tab.id },
           files: ['content-script.js']
         });
         
         await new Promise(resolve => setTimeout(resolve, 100));
-        response = await sendMessage(tab.id, { action: "convertSelection" });
+        response = await browser.tabs.sendMessage(tab.id, { action: "convertSelection" });
       }
       
       if (response?.success) {
-        await action.setBadgeText({ text: "✓" });
-        await action.setBadgeBackgroundColor({ color: "#1b8a5a" });
+        await browser.action.setBadgeText({ text: "✓" });
+        await browser.action.setBadgeBackgroundColor({ color: "#1b8a5a" });
       } else {
         throw new Error(response?.error || "Conversion failed");
       }
       
       setTimeout(() => {
-        action.setBadgeText({ text: "" });
+        browser.action.setBadgeText({ text: "" });
       }, 2000);
       
     } catch (error) {
-      await action.setBadgeText({ text: "✗" });
-      await action.setBadgeBackgroundColor({ color: "#d93025" });
+      await browser.action.setBadgeText({ text: "✗" });
+      await browser.action.setBadgeBackgroundColor({ color: "#d93025" });
       
       setTimeout(() => {
-        action.setBadgeText({ text: "" });
+        browser.action.setBadgeText({ text: "" });
       }, 2000);
     }
   }
 });
 ```
 
+**Note**: This is nearly identical to Chrome's background script, just with `browser.*` instead of `chrome.*`.
+
 #### 2.4 Firefox Popup
-Can **reuse Chrome popup** almost entirely. Only change imports:
+Can **reuse Chrome popup** almost entirely:
 
 ```typescript
+// src/platforms/firefox/popup.ts
+globalThis.browser = globalThis.browser || chrome;
+
 import { firefoxConverter } from "./firefox-converter.js";
-// ... rest is identical to Chrome popup
+
+// Rest is identical to Chrome popup - same DOM manipulation,
+// same event handlers, same clipboard API usage
 ```
 
 #### 2.5 Firefox Content Script
 Can **reuse Chrome content script** almost entirely:
 
 ```typescript
-import { runtime } from './browser-api.js';
+// src/platforms/firefox/content-script.ts
+globalThis.browser = globalThis.browser || chrome;
+
 import { firefoxConverter } from "./firefox-converter.js";
 
-runtime.onMessage.addListener((request, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "convertSelection") {
     // ... same logic as Chrome version
   }
@@ -268,7 +282,7 @@ runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 ---
 
-### Phase 4: Testing & Validation (1-2 hours)
+### Phase 4: Testing & Validation (2-3 hours)
 
 #### 4.1 Load Extension in Firefox
 1. Open `about:debugging#/runtime/this-firefox`
@@ -295,6 +309,30 @@ runtime.onMessage.addListener((request, sender, sendResponse) => {
 - **Clipboard permissions**: Firefox may prompt differently than Chrome
 - **ESM module loading**: Verify `type: "module"` works in background script
 
+#### 4.4 Automated Test Coverage
+Create Firefox-specific adapter tests:
+
+```typescript
+// test/firefox-adapter.test.ts
+import { describe, it } from 'node:test';
+import assert from 'node:assert';
+
+describe('Firefox adapter compatibility', () => {
+  it('should re-export Chrome clipboard adapter', async () => {
+    const { firefoxClipboard } = await import('../src/platforms/firefox/adapters/index.js');
+    assert.ok(firefoxClipboard.readHtml, 'readHtml should be exported');
+    assert.ok(firefoxClipboard.writeText, 'writeText should be exported');
+  });
+
+  it('should re-export Chrome DOM parser adapter', async () => {
+    const { firefoxDomParser } = await import('../src/platforms/firefox/adapters/index.js');
+    assert.ok(firefoxDomParser.parseHtml, 'parseHtml should be exported');
+  });
+});
+```
+
+**Rationale**: Validates that proxy modules correctly re-export Chrome adapters without runtime errors.
+
 ---
 
 ## 3. Code Reuse Analysis
@@ -317,12 +355,17 @@ runtime.onMessage.addListener((request, sender, sendResponse) => {
 - `static/manifest.firefox.json` - Firefox-specific manifest
 
 ### 📦 New Files Needed
-- `src/platforms/firefox/browser-api.ts` - Cross-browser API abstraction (150 lines)
-- `src/platforms/firefox/firefox-converter.ts` - Firefox adapter wrapper (30 lines)
-- `src/platforms/firefox/adapters/` - Symlink or copy Chrome adapters
+- `src/platforms/firefox/background.ts` - Firefox background script (~80 lines, 90% same as Chrome)
+- `src/platforms/firefox/popup.ts` - Firefox popup (~50 lines, 95% same as Chrome)
+- `src/platforms/firefox/content-script.ts` - Firefox content script (~40 lines, 95% same as Chrome)
+- `src/platforms/firefox/firefox-converter.ts` - Firefox converter wrapper (~30 lines)
+- `src/platforms/firefox/adapters/firefox-clipboard.ts` - Proxy re-export (1 line)
+- `src/platforms/firefox/adapters/firefox-dom-parser.ts` - Proxy re-export (1 line)
+- `src/platforms/firefox/adapters/index.ts` - Adapter exports (~5 lines)
+- `test/firefox-adapter.test.ts` - Adapter validation tests (~20 lines)
 
-**Total New Code**: ~200 lines  
-**Code Reuse**: ~95%
+**Total New Code**: ~230 lines  
+**Code Reuse**: ~95% (eliminates 150 lines of wrapper code from original plan)
 
 ---
 
@@ -365,20 +408,45 @@ npm run build:zip          # Chrome ZIP
 npm run build:firefox:zip  # Firefox ZIP
 ```
 
-### 5.2 Shared Code Updates
+### 5.2 Version Management
+Update `scripts/sync-version.mjs` to handle Firefox manifest:
+
+```javascript
+// Update both manifest.json and manifest.firefox.json
+const manifests = ['static/manifest.json', 'static/manifest.firefox.json'];
+for (const manifestPath of manifests) {
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  manifest.version = version;
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
+}
+```
+
+### 5.3 Shared Code Updates
 When updating core conversion logic:
 1. Edit `src/core/converter.ts`
 2. Run tests: `npm test`
 3. Build both platforms: `npm run build && npm run build:firefox`
 4. Test in both browsers
-5. Commit changes
+5. Run quality gate checklist (see Section 5.5)
+6. Commit changes
 
-### 5.3 Platform-Specific Fixes
+### 5.4 Platform-Specific Fixes
 - Chrome-only issues → Edit `src/platforms/chrome/`
 - Firefox-only issues → Edit `src/platforms/firefox/`
 - Never fork `src/core/` for platform differences
 
-### 5.4 CI/CD Considerations
+### 5.5 Quality Gate Checklist
+Before committing Firefox code changes, verify:
+
+1. ✅ **Consistent error handling**: All catch blocks use `error` (not `err`, `messageError`, etc.)
+2. ✅ **JSDoc documentation**: All exported functions in `src/core/` and platform adapters have JSDoc comments
+3. ✅ **Environment access**: Use centralized `src/core/env.ts` for all environment variables (no direct `process.env`)
+4. ✅ **Simplicity check**: No unnecessary abstractions or dead code (run `npx ts-unused-exports tsconfig.json`)
+5. ✅ **Cross-platform validation**: Run `npm run typecheck && npm run build && npm run build:firefox && npm test`
+
+**Reference**: See `.github/copilot-instructions.md` for complete quality standards.
+
+### 5.6 CI/CD Considerations
 Add to GitHub Actions workflow:
 ```yaml
 - name: Build Chrome Extension
@@ -488,33 +556,62 @@ Add to "Release Plan":
 
 | Phase | Tasks | Estimated Time |
 |-------|-------|----------------|
-| **Phase 1**: Manifest | Create Firefox manifest, configure build | 1-2 hours |
-| **Phase 2**: Platform Adapter | Browser API abstraction, platform code | 2-3 hours |
-| **Phase 3**: Build & Test | ESBuild config, manual testing | 1-2 hours |
-| **Phase 4**: Distribution | Store submission, documentation | 1 hour |
-| **Total** | End-to-end Firefox support | **5-8 hours** |
+| **Phase 0**: Verification | Audit Chrome adapters, verify env/logging compatibility | 0.5 hours |
+| **Phase 1**: Manifest | Create Firefox manifest, configure build scripts | 1-2 hours |
+| **Phase 2**: Platform Adapter | Create Firefox platform code and proxy adapters | 2-3 hours |
+| **Phase 3**: Build & Test | ESBuild config, automated tests, manual validation | 2-3 hours |
+| **Phase 4**: Distribution | Store submission, documentation updates | 1 hour |
+| **Total** | End-to-end Firefox support | **6.5-9.5 hours** |
 
-**Recommended Approach**: Implement in one session to maintain context and momentum.
+**Recommended Approach**: Start with Phase 0 verification to catch any blockers early. Then implement Phases 1-3 in one session to maintain context and momentum.
 
 ---
 
-## 10. Open Questions
+## 10. Pre-Implementation Verification
+
+Before starting Firefox implementation, verify these assumptions:
+
+### 10.1 Chrome Adapter API Audit
+Confirm Chrome adapters use **only** standard web APIs:
+
+```bash
+# Check chrome-clipboard.ts for chrome.* APIs
+grep -n "chrome\." src/platforms/chrome/adapters/chrome-clipboard.ts
+
+# Check chrome-dom-parser.ts for chrome.* APIs  
+grep -n "chrome\." src/platforms/chrome/adapters/chrome-dom-parser.ts
+```
+
+**Expected Result**: Should only find `navigator.clipboard.*` and `DOMParser` (both standard web APIs).
+
+### 10.2 Environment Module Compatibility
+Verify `src/core/env.ts` works in Firefox extension context:
+- Check if `process.env` access is compatible with Firefox background scripts
+- Confirm `debugConfig` lazy evaluation works correctly
+- Test that environment re-evaluation works across platforms
+
+### 10.3 Logging Compatibility
+Verify `src/core/logging.ts` works with Firefox console API:
+- Confirm `console.log/warn/error` formatting is consistent
+- Test log suppression in production mode
+- Validate that logging doesn't leak sensitive data
+
+## 11. Resolved Design Decisions
 
 1. **Manifest V2 vs V3 for Firefox?**
-   - *Recommendation*: Start with MV3 (Firefox 109+ stable support), provide MV2 fallback if needed
-   - *Decision*: Use MV3 for feature parity with Chrome
+   - ✅ **Decision**: Use MV3 for feature parity with Chrome (Firefox 109+ has stable support)
 
 2. **Shared adapters vs duplicated?**
-   - *Recommendation*: Reuse Chrome adapters via imports (they use standard APIs)
-   - *Decision*: Import Chrome adapters, only create Firefox-specific wrappers if needed
+   - ✅ **Decision**: Reuse Chrome adapters via explicit proxy modules (no symlinks)
 
 3. **Single manifest.json with browser detection?**
-   - *Recommendation*: Keep separate manifests for clarity
-   - *Decision*: Maintain `manifest.json` (Chrome) and `manifest.firefox.json` (Firefox)
+   - ✅ **Decision**: Maintain separate `manifest.json` (Chrome) and `manifest.firefox.json` (Firefox)
 
-4. **Support Firefox Android?**
-   - *Recommendation*: Test compatibility, but don't optimize for mobile initially
-   - *Decision*: Desktop-first, mobile compatibility is a bonus
+4. **Browser API abstraction strategy?**
+   - ✅ **Decision**: Use simple `globalThis.browser = globalThis.browser || chrome` fallback (no wrapper library)
+
+5. **Support Firefox Android?**
+   - ✅ **Decision**: Desktop-first, mobile compatibility is a bonus if it works without extra effort
 
 ---
 
@@ -556,5 +653,16 @@ Firefox support is **highly achievable** with minimal code changes due to:
 2. **Zero changes** needed to core conversion logic
 3. **Standard web APIs** (clipboard, DOMParser) work identically
 4. **Proven architecture** with platform adapters already separating concerns
+5. **Simplified approach** using `globalThis.browser` fallback eliminates 150+ lines of wrapper code
 
-The main work is **build configuration** and **manifest adaptation**, not algorithmic or UI changes. This makes Firefox support a **low-risk, high-value** addition to the project.
+The main work is **build configuration**, **manifest adaptation**, and **creating proxy modules** - not algorithmic or UI changes. This makes Firefox support a **low-risk, high-value** addition to the project.
+
+### Key Refinements from Original Plan
+- **Simpler browser API strategy**: Use `globalThis.browser || chrome` instead of custom wrapper
+- **Explicit proxy modules**: Follow established Raycast pattern, no symlinks
+- **Improved build reliability**: Use Node.js `fs` module for manifest copying
+- **Enhanced testing**: Added automated adapter compatibility tests
+- **Quality gates**: Incorporated project-wide code quality standards
+- **Version management**: Updated `sync-version.mjs` to handle Firefox manifest
+
+**Next Steps**: Complete Phase 0 verification, then proceed with implementation.
