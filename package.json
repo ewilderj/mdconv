@@ -16,6 +16,7 @@
     "copy:firefox:assets": "cpx \"static/{icons/**,popup.html,popup.css}\" dist-firefox",
     "copy:firefox:manifest": "node -e \"require('fs').copyFileSync('static/manifest.firefox.json', 'dist-firefox/manifest.json')\"",
     "build:firefox:zip": "npm run build:firefox && cd dist-firefox && zip -r ../mdconv-firefox.zip . && cd ..",
+    "build:firefox:source": "zip -r mdconv-firefox-source.zip src static test package.json package-lock.json tsconfig.json FIREFOX_BUILD.md README.md LICENSE .gitignore -x '*.DS_Store' -x 'node_modules/*' -x 'dist/*' -x 'dist-firefox/*'",
     "dev": "npm run clean && npm-run-all --parallel dev:js dev:assets",
     "dev:js": "esbuild src/platforms/chrome/popup.ts src/platforms/chrome/background.ts src/platforms/chrome/content-script.ts --bundle --outdir=dist --format=esm --target=chrome115 --sourcemap --watch",
     "dev:assets": "cpx \"static/**/*\" dist --watch",
