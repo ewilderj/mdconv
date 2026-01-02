@@ -374,4 +374,4 @@ Run: `npm run typecheck && npm run build && npm run build:raycast && npm test`
 
 - Main README: [README.md](README.md)
 - Firefox Build Instructions: [FIREFOX_BUILD.md](FIREFOX_BUILD.md)
-- Product Requirements: [PRD.md](PRD.md)
+- Product Requirements: [PRD.md](docs/PRD.md)
