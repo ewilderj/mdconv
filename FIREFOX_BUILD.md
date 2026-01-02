@@ -5,7 +5,7 @@ This document provides step-by-step instructions for Mozilla reviewers to build 
 ## System Requirements
 
 - **Operating System**: macOS, Linux, or Windows
-- **Node.js**: v20.x or later (tested with v20.12.7)
+- **Node.js**: v25.x or later
 - **npm**: v10.x or later (comes with Node.js)
 
 ## Installation Instructions
@@ -16,7 +16,7 @@ Download and install Node.js from: https://nodejs.org/
 
 Verify installation:
 ```bash
-node --version  # Should show v20.x or later
+node --version  # Should show v25.x or later
 npm --version   # Should show v10.x or later
 ```
 

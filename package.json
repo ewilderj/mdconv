@@ -39,6 +39,9 @@
   ],
   "author": "Edd Wilder-James",
   "license": "MIT",
+  "engines": {
+    "node": ">=25.0.0"
+  },
   "dependencies": {
     "turndown": "^7.1.2"
   },
