@@ -313,11 +313,11 @@ npm run dev:raycast
 ```
 
 **Environment Variables:**
+- `MDCONV_DEBUG=1` - Enable all debug logging
 - `MDCONV_DEBUG_CLIPBOARD=1` - Log clipboard contents
-- `MDCONV_DEBUG_ENCODING=1` - Log character encoding details
-- `MDCONV_DEBUG_SURROGATE=1` - Log emoji/surrogate pair handling
+- `MDCONV_DEBUG_INLINE=1` - Log HTML→Markdown conversion details
 
-See [CONFIG.md](CONFIG.md) for complete environment variable documentation.
+See `src/core/env.ts` for complete environment variable definitions.
 
 ## Code Quality Standards
 
@@ -373,6 +373,5 @@ Run: `npm run typecheck && npm run build && npm run build:raycast && npm test`
 ## References
 
 - Main README: [README.md](README.md)
-- Configuration: [CONFIG.md](CONFIG.md)
 - Firefox Build Instructions: [FIREFOX_BUILD.md](FIREFOX_BUILD.md)
 - Product Requirements: [PRD.md](PRD.md)

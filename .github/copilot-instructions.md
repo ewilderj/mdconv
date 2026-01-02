@@ -41,7 +41,7 @@ Always follow these patterns that have been established as best practices:
 
 ### Configuration Management
 - **Use centralized environment access** via `src/core/env.ts` for all environment variables
-- **Reference:** `CONFIG.md` for complete environment variable documentation
+- **Reference:** Inline JSDoc in `src/core/env.ts` documents all environment variables
 - **Avoid:** Direct `process.env` access scattered throughout codebase
 - **Rationale:** Single source of truth, reduced duplication, test compatibility
 
@@ -71,11 +71,11 @@ Run: `npm run typecheck && npm run build && npm run build:raycast && npm test` b
 - Build artifacts: `dist/`
 - Raycast CLI docs: https://developers.raycast.com (for command metadata or publish steps)
 - README & PRD in the repo root capture product expectations—update them if behavior changes.
-- **Configuration reference:** `CONFIG.md` - Complete environment variable documentation
+- **Environment variables:** Documented in `src/core/env.ts` with inline JSDoc
 
 ## Key lessons learned
 - **Consistent patterns matter** more than clever architectures for LLM maintainability
-- **Document configuration** early and centrally - `CONFIG.md` saves future confusion  
+- **Document configuration in code** - Inline JSDoc in `src/core/env.ts` stays synchronized
 - **Regular cleanup cycles** remove accumulated complexity and prevent technical debt
 - **Quality gates catch issues**: The 5-point checklist above prevents regression of established best practices
 - **LLM-friendly code**: Consistent naming, simple abstractions, and good documentation pay dividends
