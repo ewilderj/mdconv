@@ -54,6 +54,9 @@ A native Raycast command for clipboard conversion, on macOS only:
 
 ![Raycast usage of Markdown Clipboard Converter](docs/screencast.gif)
 
+## For org users
+
+If, like the author, you also use [org-mode](https://orgmode.org/) files a lot, please consult the [md2org.sh](scripts/md2org.sh) script. Throw this in your Raycast's script directory and it gives you an easy way to convert the copied Markdown into `org` syntax, assuming you have [pandoc](https://pandoc.org/) installed.
 
 ## For Developers
 
