@@ -41,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Keyboard Shortcuts**: Paste directly into extension popup (Cmd/Ctrl+V)
 
 ### Technical
-- TypeScript codebase with 95%+ code reuse across platforms
+- TypeScript codebase with 80% code reuse across platforms
 - ESBuild bundler with source maps
 - Platform adapters for Chrome, Firefox, and Raycast
 - Standard web APIs (no Chrome-specific dependencies in core)

@@ -1,7 +1,7 @@
 # mdconv agent onboarding
 
 ## Project snapshot
-- Multi-platform Markdown converter with a Chrome extension and a Raycast command set.
+- Multi-platform Markdown converter with a Chrome extension and a Raycast command set (~80% code reuse).
 - Shared conversion logic lives in `src/core` plus platform adapters under `src/platforms/**`.
 - Raycast entry points in `raycast/src/*.tsx` are thin proxies that re-export the shared command implementations in `src/platforms/raycast/`.
 - TypeScript 5.x project using ESBuild for Chrome bundles and the Raycast CLI for Raycast builds.

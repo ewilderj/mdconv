@@ -351,7 +351,7 @@ Run: `npm run typecheck && npm run build && npm run build:raycast && npm test`
 ## Platform-Specific Notes
 
 ### Chrome/Firefox
-- Share 95% of code via proxy adapters
+- Share 80% of code via proxy adapters
 - Only differ in manifest and build targets
 - Both use standard Web APIs
 
