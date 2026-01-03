@@ -72,6 +72,7 @@ Run: `npm run typecheck && npm run build && npm run build:raycast && npm test` b
 - Raycast CLI docs: https://developers.raycast.com (for command metadata or publish steps)
 - README & PRD in the repo root capture product expectations—update them if behavior changes.
 - **Environment variables:** Documented in `src/core/env.ts` with inline JSDoc
+- **Raycast changelog:** Always preserve `{PR_MERGE_DATE}` as a literal template variable (it gets substituted during publish)
 
 ## Key lessons learned
 - **Consistent patterns matter** more than clever architectures for LLM maintainability

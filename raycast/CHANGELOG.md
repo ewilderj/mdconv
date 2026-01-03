@@ -1,5 +1,10 @@
 # Markdown Converter Changelog
 
+## [1.0.1] - 2026-01-02
+
+- Simplified UX: replaced preview UI with instant HUD notification
+- No need to dismiss result window - markdown is immediately available in clipboard
+
 ## [Initial Release] - {PR_MERGE_DATE}
 
 - Convert rich text from clipboard to Markdown format

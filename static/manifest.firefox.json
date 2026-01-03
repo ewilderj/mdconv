@@ -2,18 +2,18 @@
   "manifest_version": 3,
   "name": "Markdown Converter",
   "description": "Convert rich text from the clipboard into Markdown directly from the toolbar or context menu.",
-  "version": "1.0.0",
-  
+  "version": "1.0.1",
   "browser_specific_settings": {
     "gecko": {
       "id": "mdconv@ewilderj.github.io",
       "strict_min_version": "112.0",
       "data_collection_permissions": {
-        "required": ["none"]
+        "required": [
+          "none"
+        ]
       }
     }
   },
-  
   "action": {
     "default_popup": "popup.html",
     "default_title": "Markdown Converter",
@@ -23,7 +23,6 @@
       "128": "icons/icon128.png"
     }
   },
-  
   "permissions": [
     "clipboardRead",
     "clipboardWrite",
@@ -31,24 +30,26 @@
     "scripting",
     "activeTab"
   ],
-  
   "host_permissions": [
     "<all_urls>"
   ],
-  
   "background": {
-    "scripts": ["background.js"],
+    "scripts": [
+      "background.js"
+    ],
     "type": "module"
   },
-  
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content-script.js"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content-script.js"
+      ],
       "run_at": "document_idle"
     }
   ],
-  
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
