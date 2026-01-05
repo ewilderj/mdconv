@@ -1,6 +1,6 @@
 # Markdown Clipboard Converter
 
-A multi-platform clipboard converter that transforms rich text into polished Markdown. Available as a Chrome/Edge browser extension, with Raycast integration in development.
+A multi-platform clipboard converter that transforms rich text into polished Markdown. Available as a Chrome/Edge/Firefox browser extension, with Raycast integration in development.
 
 **Primary Platform: Browser Extension** – Paste formatted content from Microsoft Word, Google Docs, or the web, preview the converted Markdown instantly, and copy it back to your clipboard in a single click.
 
