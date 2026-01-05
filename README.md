@@ -12,8 +12,7 @@ A multi-platform clipboard converter that transforms rich text into polished Mar
 
 ## Raycast integration
 
-There is already a well-featured Raycast Markdown parser, Past to Markdown, from @wei.
-While we figure out how to collaborate, I probably won't proceed with publishing the
+There is already a well-featured Raycast Markdown converted, [Paste to Markdown](https://www.raycast.com/weicodes/paste-to-markdown), from @wei. While we figure out how to collaborate, I probably won't proceed with publishing the
 Raycast integration. However, you can install it locally as a Raycast developer using `npm run dev:raycast`.
 
 ## Features
