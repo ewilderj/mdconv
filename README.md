@@ -4,13 +4,17 @@ A multi-platform clipboard converter that transforms rich text into polished Mar
 
 **Primary Platform: Browser Extension** – Paste formatted content from Microsoft Word, Google Docs, or the web, preview the converted Markdown instantly, and copy it back to your clipboard in a single click.
 
-**🚧 Work in Progress: Raycast Extension** – Native macOS integration through Raycast for quick clipboard conversion without browser context.
+## Install
 
-Created with a lot of help from Copilot in VS Code, using GPT-5-Codex and Sonnet 4 models. 
+- **Google Chrome** – [Markdown Converter for the web, Word, and Google Docs](https://chromewebstore.google.com/detail/markdown-converter-for-th/bnfjgeonjiooklgimcmobnkeibiiaamp)
+- **Microsoft Edge** – [Markdown Converter for the web, Word, and Google Docs](https://microsoftedge.microsoft.com/addons/detail/markdown-converter-for-th/jhgdmdnfelimaoponohkkimlfbgnadam)
+- **Firefox or Zen** – [Markdown Converter](https://addons.mozilla.org/en-US/firefox/addon/markdown-converter/)
 
-**Install for Google Chrome** – [Markdown Converter for the web, Word, and Google Docs](https://chromewebstore.google.com/detail/markdown-converter-for-th/bnfjgeonjiooklgimcmobnkeibiiaamp)
+## Raycast integration
 
-**Install for Microsoft Edge** – [Markdown Converter for the web, Word, and Google Docs](https://microsoftedge.microsoft.com/addons/detail/markdown-converter-for-th/jhgdmdnfelimaoponohkkimlfbgnadam) 
+There is already a well-featured Raycast Markdown parser, Past to Markdown, from @wei.
+While we figure out how to collaborate, I probably won't proceed with publishing the
+Raycast integration. However, you can install it locally as a Raycast developer using `npm run dev:raycast`.
 
 ## Features
 
