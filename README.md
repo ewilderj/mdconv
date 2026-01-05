@@ -10,9 +10,9 @@ A multi-platform clipboard converter that transforms rich text into polished Mar
 - **Microsoft Edge** – [Markdown Converter for the web, Word, and Google Docs](https://microsoftedge.microsoft.com/addons/detail/markdown-converter-for-th/jhgdmdnfelimaoponohkkimlfbgnadam)
 - **Firefox or Zen** – [Markdown Converter](https://addons.mozilla.org/en-US/firefox/addon/markdown-converter/)
 
-## Raycast integration
+### Raycast extension
 
-There is already a well-featured Raycast Markdown converted, [Paste to Markdown](https://www.raycast.com/weicodes/paste-to-markdown), from @wei. While we figure out how to collaborate, I probably won't proceed with publishing the
+There is already a well-featured Raycast Markdown converted, [Paste to Markdown](https://www.raycast.com/weicodes/paste-to-markdown), from [@wei](https://github.com/wei). While we figure out how to collaborate, I probably won't proceed with publishing my
 Raycast integration. However, you can install it locally as a Raycast developer using `npm run dev:raycast`.
 
 ## Features
