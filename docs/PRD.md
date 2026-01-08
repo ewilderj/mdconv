@@ -47,6 +47,34 @@ Primary use cases:
 2. **Word normalization** upgrades detected headings, monospace paragraphs, and bold spans so the resulting Markdown preserves intent.
 3. **Auto-copy on success** writes the newly generated Markdown back to the clipboard immediately after conversion.
 4. **Image handling options** allow users to preserve, filter, or remove images during conversion.
+5. **Table conversion** transforms HTML tables into GFM (GitHub Flavored Markdown) table syntax via the `turndown-plugin-gfm` tables plugin.
+
+#### Table Conversion Details
+Table support is provided by the official `turndown-plugin-gfm` package which offers robust HTML-to-Markdown table conversion:
+
+**Supported features:**
+- Basic tables with `<thead>`/`<tbody>` structure → standard GFM pipe tables
+- Column alignment preservation via `align` attributes (left, center, right)
+- Empty cells handled gracefully
+- Tables with `<th>` elements in first row (auto-detected as header)
+- Multiple `<tbody>` sections merged into single table
+
+**Conversion requirements:**
+- Tables **must have a definitive heading row** to be converted to Markdown. A heading row is detected when:
+  - The row is inside a `<thead>` element, OR
+  - It's the first row of the table where all cells are `<th>` elements
+- Tables without a valid heading row are **preserved as raw HTML** to prevent data loss
+
+**Limitations:**
+- Nested tables not supported (will be kept as HTML)
+- `colspan`/`rowspan` spanning cells not supported (GFM limitation)
+- Complex Word/Google Docs tables may require manual cleanup if they lack proper semantic markup
+- Cell content containing pipe characters (`|`) may need escaping
+
+**Implementation approach:**
+- Add `turndown-plugin-gfm` as a dependency and enable the `tables` plugin
+- Apply after existing normalization passes (Word heading promotion, etc.)
+- Consider pre-processing to promote `<td>` in first row to `<th>` when table structure suggests headers
 
 ### Browser Extension
 5. **Paste & Convert button** reads the clipboard and converts HTML to Markdown.
@@ -90,7 +118,7 @@ Primary use cases:
 ## 9. Risks & Mitigations
 
 ### Cross-Platform
-- **Markdown fidelity gaps**: Turndown may miss edge cases (e.g., complex tables). Allow users to review output and iterate quickly across all platforms.
+- **Markdown fidelity gaps**: Turndown may miss edge cases. Tables without semantic headers or using `colspan`/`rowspan` cannot be converted to GFM and are preserved as HTML. Allow users to review output and iterate quickly across all platforms.
 - **Version sync complexity**: Shared codebase requires careful coordination between platform releases. Implement automated version synchronization.
 
 ### Browser Extension
@@ -107,3 +135,4 @@ Primary use cases:
 - Do we need advanced configuration (e.g., custom Turndown rules) in v1 or later versions?
 - Should the Raycast extension include file-based conversion in addition to clipboard workflow?
 - How can we maintain feature parity between platforms while respecting their unique interaction patterns?
+- Should we provide a user option to force table header detection when source HTML lacks `<th>` elements?
