@@ -71,10 +71,17 @@ Table support is provided by the official `turndown-plugin-gfm` package which of
 - Complex Word/Google Docs tables may require manual cleanup if they lack proper semantic markup
 - Cell content containing pipe characters (`|`) may need escaping
 
-**Implementation approach:**
-- Add `turndown-plugin-gfm` as a dependency and enable the `tables` plugin
-- Apply after existing normalization passes (Word heading promotion, etc.)
-- Consider pre-processing to promote `<td>` in first row to `<th>` when table structure suggests headers
+**Implementation approach (hybrid strategy):**
+- Add `turndown-plugin-gfm` as a dependency and enable the `tables` plugin for battle-tested GFM table conversion
+- Add pre-processing in the Word/Google Docs normalization passes (similar to `promoteWordHeadingsInPlace`) to fix common table markup issues before Turndown sees them:
+  - Detect tables where first row has bold text or distinct styling → inject `<th>` elements
+  - Handle Word-specific table markup patterns that lack semantic `<thead>`/`<th>` structure
+- This hybrid approach leverages the proven plugin while adding source-specific fixes for better conversion rates
+
+**Alternative approaches considered:**
+- Custom Turndown rules only (more control but more maintenance burden)
+- Keep tables as HTML intentionally (works in GitHub/Obsidian but less portable)
+- Alternative libraries like rehype-remark (would require replacing Turndown entirely)
 
 ### Browser Extension
 5. **Paste & Convert button** reads the clipboard and converts HTML to Markdown.
