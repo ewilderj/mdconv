@@ -43,7 +43,8 @@
     "node": ">=25.0.0"
   },
   "dependencies": {
-    "turndown": "^7.1.2"
+    "turndown": "^7.1.2",
+    "turndown-plugin-gfm": "^1.0.2"
   },
   "devDependencies": {
     "@raycast/api": "^1.103.2",
