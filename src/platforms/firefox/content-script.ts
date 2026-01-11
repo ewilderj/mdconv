@@ -13,16 +13,19 @@ if (typeof browser === 'undefined') {
 }
 
 import { firefoxConverter } from "./firefox-converter.js";
+import { convertMarkdownToOrg } from "../../core/md-to-org.js";
+
+type OutputFormat = "markdown" | "org";
 
 // Listen for messages from the background script
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "convertSelection") {
-    handleConvertSelection(sendResponse);
+    handleConvertSelection(sendResponse, request.format || "markdown");
     return true; // Will send response asynchronously
   }
   
   if (request.action === "convertSelectionForShortcut") {
-    handleConvertSelectionForShortcut(sendResponse);
+    handleConvertSelectionForShortcut(sendResponse, request.format || "markdown");
     return true; // Will send response asynchronously
   }
   
@@ -31,10 +34,12 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 /**
- * Handles converting the current text selection to Markdown.
- * Used by the context menu "Copy as Markdown" feature.
+ * Handles converting the current text selection to Markdown or Org.
+ * Used by the context menu "Copy as Markdown/Org" feature.
+ * @param sendResponse - Callback to send result back to background script
+ * @param format - Output format: "markdown" or "org"
  */
-function handleConvertSelection(sendResponse: (response: unknown) => void): void {
+function handleConvertSelection(sendResponse: (response: unknown) => void, format: OutputFormat): void {
   try {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) {
@@ -49,14 +54,18 @@ function handleConvertSelection(sendResponse: (response: unknown) => void): void
     const html = container.innerHTML;
     const text = selection.toString();
 
-    const markdown = firefoxConverter.convertClipboardPayload(html || undefined, text || undefined);
+    let result = firefoxConverter.convertClipboardPayload(html || undefined, text || undefined);
+    
+    if (format === "org") {
+      result = convertMarkdownToOrg(result);
+    }
 
-    navigator.clipboard.writeText(markdown)
+    navigator.clipboard.writeText(result)
       .then(() => {
-        sendResponse({ success: true, markdown });
+        sendResponse({ success: true, markdown: result });
       })
       .catch((error) => {
-        sendResponse({ success: false, error: error.message, markdown });
+        sendResponse({ success: false, error: error.message, markdown: result });
       });
 
   } catch (error) {
@@ -65,10 +74,12 @@ function handleConvertSelection(sendResponse: (response: unknown) => void): void
 }
 
 /**
- * Handles converting selection to Markdown for keyboard shortcut.
+ * Handles converting selection to Markdown or Org for keyboard shortcut.
  * Returns noSelection: true if nothing is selected (silent no-op).
+ * @param sendResponse - Callback to send result back to background script
+ * @param format - Output format: "markdown" or "org"
  */
-function handleConvertSelectionForShortcut(sendResponse: (response: unknown) => void): void {
+function handleConvertSelectionForShortcut(sendResponse: (response: unknown) => void, format: OutputFormat): void {
   try {
     const selection = window.getSelection();
     
@@ -85,14 +96,18 @@ function handleConvertSelectionForShortcut(sendResponse: (response: unknown) => 
     const html = container.innerHTML;
     const text = selection.toString();
 
-    const markdown = firefoxConverter.convertClipboardPayload(html || undefined, text || undefined);
+    let result = firefoxConverter.convertClipboardPayload(html || undefined, text || undefined);
+    
+    if (format === "org") {
+      result = convertMarkdownToOrg(result);
+    }
 
-    navigator.clipboard.writeText(markdown)
+    navigator.clipboard.writeText(result)
       .then(() => {
-        sendResponse({ success: true, markdown });
+        sendResponse({ success: true, markdown: result });
       })
       .catch((error) => {
-        sendResponse({ success: false, error: error.message, markdown });
+        sendResponse({ success: false, error: error.message, markdown: result });
       });
 
   } catch (error) {

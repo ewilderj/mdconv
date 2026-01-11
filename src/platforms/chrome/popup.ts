@@ -1,15 +1,19 @@
 import { chromeConverter } from "./chrome-converter.js";
+import { convertMarkdownToOrg } from "../../core/md-to-org.js";
 
 type Tone = "info" | "success" | "error";
+type OutputFormat = "markdown" | "org";
 
 type UIRefs = {
   pasteButton: HTMLButtonElement;
   clearButton: HTMLButtonElement;
+  formatSelect: HTMLSelectElement;
   output: HTMLTextAreaElement;
   status: HTMLElement;
 };
 
 const DEBUG_CLIPBOARD_FLAG = "mdconv.debugClipboard";
+const FORMAT_STORAGE_KEY = "mdconv.outputFormat";
 
 function isClipboardDebugEnabled(): boolean {
   try {
@@ -82,14 +86,15 @@ function formatPreview(value: string | undefined | null, limit = 10000): string 
 function queryUI(): UIRefs | null {
   const pasteButton = document.getElementById("pasteButton") as HTMLButtonElement | null;
   const clearButton = document.getElementById("clearButton") as HTMLButtonElement | null;
+  const formatSelect = document.getElementById("formatSelect") as HTMLSelectElement | null;
   const output = document.getElementById("output") as HTMLTextAreaElement | null;
   const status = document.getElementById("status");
 
-  if (!pasteButton || !clearButton || !output || !status) {
+  if (!pasteButton || !clearButton || !formatSelect || !output || !status) {
     return null;
   }
 
-  return { pasteButton, clearButton, output, status };
+  return { pasteButton, clearButton, formatSelect, output, status };
 }
 
 function setStatus(refs: UIRefs, message: string, tone: Tone = "info") {
@@ -122,12 +127,16 @@ async function readClipboardAsHtml(): Promise<{ html?: string; plain?: string }>
   return { plain };
 }
 async function presentMarkdown(refs: UIRefs, markdown: string, context: string) {
-  refs.output.value = markdown;
-  setStatus(refs, `${context}. Copying Markdown to clipboard…`, "info");
+  const format = refs.formatSelect.value as OutputFormat;
+  const output = format === "org" ? convertMarkdownToOrg(markdown) : markdown;
+  const formatLabel = format === "org" ? "Org" : "Markdown";
+  
+  refs.output.value = output;
+  setStatus(refs, `${context}. Copying ${formatLabel} to clipboard…`, "info");
 
   try {
-    await writeClipboard(markdown);
-    setStatus(refs, `${context}. Markdown copied to clipboard.`, "success");
+    await writeClipboard(output);
+    setStatus(refs, `${context}. ${formatLabel} copied to clipboard.`, "success");
   } catch (error) {
     setStatus(refs, "Failed to copy to clipboard", "error");
   }
@@ -180,6 +189,21 @@ async function init() {
 
   refs.output.value = "";
   setStatus(refs, "", "info");
+
+  // Restore saved format preference
+  try {
+    const stored = await chrome.storage.local.get(FORMAT_STORAGE_KEY);
+    if (stored[FORMAT_STORAGE_KEY] === "org" || stored[FORMAT_STORAGE_KEY] === "markdown") {
+      refs.formatSelect.value = stored[FORMAT_STORAGE_KEY];
+    }
+  } catch (error) {
+    // Ignore storage errors
+  }
+
+  // Save format preference on change
+  refs.formatSelect.addEventListener("change", () => {
+    void chrome.storage.local.set({ [FORMAT_STORAGE_KEY]: refs.formatSelect.value });
+  });
 
   refs.pasteButton.addEventListener("click", () => {
     void handleConversion(refs);

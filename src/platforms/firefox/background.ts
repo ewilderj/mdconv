@@ -31,10 +31,16 @@ async function showFirefoxBadge(success: boolean): Promise<void> {
 }
 
 browser.runtime.onInstalled.addListener(() => {
-  // Create context menu item for text selection
+  // Create context menu items for text selection
   browser.contextMenus.create({
     id: "copyAsMarkdown",
     title: "Copy as Markdown",
+    contexts: ["selection"]
+  });
+  
+  browser.contextMenus.create({
+    id: "copyAsOrg",
+    title: "Copy as Org",
     contexts: ["selection"]
   });
   
@@ -46,9 +52,11 @@ browser.runtime.onInstalled.addListener(() => {
   });
 });
 
-// Handle keyboard shortcut command
+// Handle keyboard shortcut commands
 browser.commands.onCommand.addListener(async (command) => {
-  if (command === "convert-clipboard") {
+  if (command === "convert-clipboard" || command === "convert-clipboard-org") {
+    const format = command === "convert-clipboard-org" ? "org" : "markdown";
+    
     // Get the active tab to run the content script
     const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
     if (!tab?.id) {
@@ -62,7 +70,8 @@ browser.commands.onCommand.addListener(async (command) => {
       try {
         // Try to send message to content script first
         response = await browser.tabs.sendMessage(tab.id, {
-          action: "convertSelectionForShortcut"
+          action: "convertSelectionForShortcut",
+          format
         });
       } catch (error) {
         // If content script isn't available, inject it and try again
@@ -76,7 +85,8 @@ browser.commands.onCommand.addListener(async (command) => {
         
         // Try sending the message again
         response = await browser.tabs.sendMessage(tab.id, {
-          action: "convertSelectionForShortcut"
+          action: "convertSelectionForShortcut",
+          format
         });
       }
       
@@ -101,14 +111,21 @@ browser.contextMenus.onClicked.addListener(async (info, tab) => {
     return;
   }
   
-  if (info.menuItemId === "copyAsMarkdown" && info.selectionText && tab?.id) {
+  // Handle copy as Markdown/Org
+  const isMarkdown = info.menuItemId === "copyAsMarkdown";
+  const isOrg = info.menuItemId === "copyAsOrg";
+  
+  if ((isMarkdown || isOrg) && info.selectionText && tab?.id) {
+    const format = isOrg ? "org" : "markdown";
+    
     try {
       let response;
       
       try {
         // Try to send message to content script first
         response = await browser.tabs.sendMessage(tab.id, {
-          action: "convertSelection"
+          action: "convertSelection",
+          format
         });
       } catch (error) {
         // If content script isn't available, inject it and try again
@@ -122,7 +139,8 @@ browser.contextMenus.onClicked.addListener(async (info, tab) => {
         
         // Try sending the message again
         response = await browser.tabs.sendMessage(tab.id, {
-          action: "convertSelection"
+          action: "convertSelection",
+          format
         });
       }
       

@@ -11,7 +11,8 @@
     "clipboardRead",
     "clipboardWrite",
     "contextMenus",
-    "scripting"
+    "scripting",
+    "storage"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -43,6 +44,13 @@
         "mac": "Command+Shift+M"
       },
       "description": "Copy highlighted text as Markdown"
+    },
+    "convert-clipboard-org": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+O",
+        "mac": "Command+Shift+O"
+      },
+      "description": "Copy highlighted text as Org"
     }
   }
 }

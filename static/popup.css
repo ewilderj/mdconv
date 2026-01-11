@@ -50,6 +50,28 @@ header h1 {
   margin-bottom: 0.5rem;
 }
 
+select {
+  padding: 0.75rem 1rem;
+  border: 1px solid #d0d8ea;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  background: #fff;
+  color: #1c2333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+select:focus {
+  outline: none;
+  border-color: #2f6fed;
+  box-shadow: 0 0 0 3px rgba(47, 111, 237, 0.1);
+}
+
+select:hover {
+  border-color: #2f6fed;
+}
+
 button {
   flex: 1;
   padding: 0.75rem 1rem;

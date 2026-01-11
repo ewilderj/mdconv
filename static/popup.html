@@ -11,8 +11,12 @@
       <h1>Markdown Converter</h1>
     </header>
     <main>
-      <p class="helper-text">Paste formatted content and we'll copy the Markdown for you.</p>
+      <p class="helper-text">Paste formatted content and we'll copy the converted text for you.</p>
       <div class="controls">
+        <select id="formatSelect" aria-label="Output format">
+          <option value="markdown">Markdown</option>
+          <option value="org">Org</option>
+        </select>
         <button id="pasteButton" type="button">Paste &amp; Convert</button>
       </div>
       <label class="field">

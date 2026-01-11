@@ -1,15 +1,18 @@
 /// <reference types="chrome" />
 import { chromeConverter } from "./chrome-converter.js";
+import { convertMarkdownToOrg } from "../../core/md-to-org.js";
+
+type OutputFormat = "markdown" | "org";
 
 // Listen for messages from the background script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "convertSelection") {
-    handleConvertSelection(sendResponse);
+    handleConvertSelection(sendResponse, request.format || "markdown");
     return true; // Will send response asynchronously
   }
   
   if (request.action === "convertSelectionForShortcut") {
-    handleConvertSelectionForShortcut(sendResponse);
+    handleConvertSelectionForShortcut(sendResponse, request.format || "markdown");
     return true; // Will send response asynchronously
   }
   
@@ -18,10 +21,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 /**
- * Handles converting the current text selection to Markdown.
- * Used by the context menu "Copy as Markdown" feature.
+ * Handles converting the current text selection to Markdown or Org.
+ * Used by the context menu "Copy as Markdown/Org" feature.
  */
-function handleConvertSelection(sendResponse: (response: unknown) => void): void {
+function handleConvertSelection(sendResponse: (response: unknown) => void, format: OutputFormat): void {
   try {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) {
@@ -37,13 +40,14 @@ function handleConvertSelection(sendResponse: (response: unknown) => void): void
     const text = selection.toString();
 
     const markdown = chromeConverter.convertClipboardPayload(html || undefined, text || undefined);
+    const output = format === "org" ? convertMarkdownToOrg(markdown) : markdown;
 
-    navigator.clipboard.writeText(markdown)
+    navigator.clipboard.writeText(output)
       .then(() => {
-        sendResponse({ success: true, markdown });
+        sendResponse({ success: true, output });
       })
       .catch((error) => {
-        sendResponse({ success: false, error: error.message, markdown });
+        sendResponse({ success: false, error: error.message, output });
       });
 
   } catch (error) {
@@ -52,10 +56,10 @@ function handleConvertSelection(sendResponse: (response: unknown) => void): void
 }
 
 /**
- * Handles converting selection to Markdown for keyboard shortcut.
+ * Handles converting selection to Markdown or Org for keyboard shortcut.
  * Returns noSelection: true if nothing is selected (silent no-op).
  */
-function handleConvertSelectionForShortcut(sendResponse: (response: unknown) => void): void {
+function handleConvertSelectionForShortcut(sendResponse: (response: unknown) => void, format: OutputFormat): void {
   try {
     const selection = window.getSelection();
     
@@ -73,13 +77,14 @@ function handleConvertSelectionForShortcut(sendResponse: (response: unknown) => 
     const text = selection.toString();
 
     const markdown = chromeConverter.convertClipboardPayload(html || undefined, text || undefined);
+    const output = format === "org" ? convertMarkdownToOrg(markdown) : markdown;
 
-    navigator.clipboard.writeText(markdown)
+    navigator.clipboard.writeText(output)
       .then(() => {
-        sendResponse({ success: true, markdown });
+        sendResponse({ success: true, output });
       })
       .catch((error) => {
-        sendResponse({ success: false, error: error.message, markdown });
+        sendResponse({ success: false, error: error.message, output });
       });
 
   } catch (error) {

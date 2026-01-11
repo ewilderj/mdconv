@@ -1311,7 +1311,39 @@ function createTurndownService(imageHandling: ImageHandlingMode = 'preserve'): T
   // Tables without valid header rows are preserved as HTML by the plugin
   turndownInstance.use(tables);
 
-  turndownInstance.keep(["pre", "code"]);
+  turndownInstance.keep(["code"]);
+
+  // Custom rule to handle bare <pre> elements (without nested <code>)
+  // Turndown's default fencedCodeBlock rule only handles <pre><code>
+  turndownInstance.addRule("barePre", {
+    filter: function (node) {
+      return (
+        node.nodeName === "PRE" &&
+        !node.querySelector("code")
+      );
+    },
+    replacement: function (content, node) {
+      const element = node as HTMLPreElement;
+      // Use textContent to avoid any nested HTML tags
+      // Trim trailing whitespace to avoid extra blank lines
+      const code = (element.textContent || "").replace(/\s+$/, "");
+      return "\n```\n" + code + "\n```\n";
+    },
+  });
+
+  // Custom rule to treat <samp> and <kbd> as inline code
+  // These are semantic HTML elements typically rendered in monospace
+  // - <samp>: sample output from a computer program
+  // - <kbd>: keyboard input
+  // Use textContent to avoid Turndown's underscore escaping inside code spans
+  turndownInstance.addRule("monospaceInline", {
+    filter: ["samp", "kbd"],
+    replacement: function (_content, node) {
+      const text = (node as HTMLElement).textContent || "";
+      if (!text.trim()) return "";
+      return "`" + text + "`";
+    },
+  });
 
   // Custom rule to handle paragraphs inside list items (Word behavior)
   turndownInstance.addRule("listParagraph", {

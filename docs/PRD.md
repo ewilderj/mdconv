@@ -195,3 +195,145 @@ The "M" mnemonic is chosen for "Markdown" - intuitive and memorable.
 - Should the Raycast extension include file-based conversion in addition to clipboard workflow?
 - How can we maintain feature parity between platforms while respecting their unique interaction patterns?
 - Should we provide a user option to force table header detection when source HTML lacks `<th>` elements?
+
+---
+
+## 11. Future Feature: Org-mode Output Format
+
+### Summary
+Add Org-mode as an alternative output format alongside Markdown. Org-mode is the native format for Emacs org-mode users and offers similar structured text capabilities. This feature provides explicit Org-specific commands and UI controls rather than a global preference, keeping Markdown workflows unchanged.
+
+### User Stories
+- _As an_ Emacs user, _I want_ to convert clipboard content directly to Org-mode _so that_ I can paste into my org files without manual reformatting.
+- _As a_ user who works with both formats, _I want_ to choose the output format at conversion time _so that_ I can use whichever is appropriate for my current task.
+
+### Functional Requirements
+
+#### Output Format Selection
+The output format is selected **per-action** rather than as a global preference:
+- Each conversion action explicitly targets either Markdown or Org
+- Existing Markdown workflows remain unchanged
+- Org-mode is an additive feature, not a replacement
+
+#### Browser Extension - Popup UI
+1. **Format selector dropdown** in the popup UI allows choosing output format before conversion
+   - Options: "Markdown" (default), "Org"
+   - Dropdown appears near the "Paste & Convert" button
+   - Selected format is remembered for the session (or optionally persisted in storage)
+2. **Conversion behavior** uses the selected format for both paste-and-convert and keyboard paste (Cmd/Ctrl+V) within the popup
+
+#### Browser Extension - Context Menu
+1. **Separate menu items** for each format:
+   - "Copy as Markdown" (existing)
+   - "Copy as Org" (new)
+2. Both appear when text is selected on a page
+3. Each triggers its respective conversion and copies result to clipboard
+
+#### Browser Extension - Keyboard Shortcuts
+1. **Separate shortcuts** for each format:
+   - `Ctrl+Shift+M` / `Cmd+Shift+M` → Copy selection as Markdown (existing)
+   - `Ctrl+Shift+O` / `Cmd+Shift+O` → Copy selection as Org (new)
+2. The "O" mnemonic is chosen for "Org" - intuitive and memorable
+3. Both shortcuts follow the same selection-only semantics (no selection = silent no-op)
+4. Both use the same badge feedback mechanism (✓ success, ✗ failure)
+
+#### Raycast Extension
+1. **Separate command** for Org conversion:
+   - "Convert Clipboard to Markdown" (existing)
+   - "Convert Clipboard to Org" (new)
+2. Each command uses the same image handling preference
+3. Both show HUD notification on success
+
+### Technical Approach
+
+#### Conversion Pipeline
+The Org output uses a two-stage conversion:
+```
+HTML → Markdown (Turndown) → AST (remark-parse) → Org (custom serializer)
+```
+
+This approach:
+- Reuses all existing HTML normalization (Word, Google Docs, etc.)
+- Leverages battle-tested Markdown parsing via remark
+- Adds ~40-60KB to bundle size (unified + remark-parse + remark-gfm)
+
+#### Org Serializer
+A custom `toOrg()` function walks the mdast AST and produces Org syntax:
+
+| Markdown | Org-mode |
+|----------|----------|
+| `# Heading` | `* Heading` |
+| `**bold**` | `*bold*` |
+| `*italic*` | `/italic/` |
+| `` `code` `` | `~code~` |
+| `[text](url)` | `[[url][text]]` |
+| `~~strike~~` | `+strike+` |
+| Code blocks | `#+BEGIN_SRC`...`#+END_SRC` |
+| Tables | Org pipe tables with `\|-` separator |
+| Blockquotes | `#+BEGIN_QUOTE`...`#+END_QUOTE` |
+
+#### New Dependencies
+- `unified` - AST processing framework
+- `remark-parse` - Markdown parser
+- `remark-gfm` - GFM extensions (tables, strikethrough)
+
+These are already installed as dev dependencies for the `scripts/md2org.mjs` proof-of-concept.
+
+#### File Structure
+```
+src/core/
+├── converter.ts           # HTML → Markdown (unchanged)
+├── org-stringify.ts       # NEW: AST → Org serializer
+├── md-to-org.ts           # NEW: Markdown → Org wrapper
+```
+
+### UI Mockups
+
+#### Popup Format Selector
+```
+┌─────────────────────────────────────┐
+│  Markdown Converter                 │
+├─────────────────────────────────────┤
+│                                     │
+│  Format: [Markdown ▾]               │
+│                                     │
+│  [Paste & Convert]  [Clear]         │
+│                                     │
+│  ┌─────────────────────────────┐    │
+│  │ # Converted output here     │    │
+│  │                             │    │
+│  └─────────────────────────────┘    │
+│                                     │
+│  How to use                         │
+└─────────────────────────────────────┘
+```
+
+#### Context Menu
+```
+┌─────────────────────────┐
+│ Copy                    │
+│ Cut                     │
+│ Paste                   │
+│ ───────────────────     │
+│ Copy as Markdown        │  ← existing
+│ Copy as Org             │  ← new
+│ ───────────────────     │
+│ ...                     │
+└─────────────────────────┘
+```
+
+### Bundle Size Impact
+- Current popup.js: ~62KB
+- Estimated increase: ~40-60KB (+65-95%)
+- Mitigation: Could lazy-load Org conversion on first use, but adds complexity
+
+### Risks & Mitigations
+- **Bundle size increase**: Accept the tradeoff for feature value; most users have fast connections
+- **Org edge cases**: Some Org features (TODO states, drawers, properties) have no Markdown equivalent - document limitations
+- **Maintenance burden**: Two output formats means testing both; mitigate with shared test fixtures
+
+### Open Questions
+- ~~Should the popup remember the last-used format across sessions?~~ **Yes** - persist to `chrome.storage.local`
+- Should we add a keyboard shortcut hint next to the format dropdown?
+- ~~Is the bundle size increase acceptable, or should we lazy-load the Org converter?~~ **Yes** - acceptable; animated GIFs are 10x larger
+

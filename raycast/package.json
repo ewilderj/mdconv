@@ -12,7 +12,9 @@
     "rich text",
     "word",
     "google docs",
-    "html"
+    "html",
+    "org-mode",
+    "org"
   ],
   "platforms": [
     "macOS"
@@ -27,6 +29,12 @@
       "name": "convert-clipboard",
       "title": "Convert Clipboard to Markdown",
       "description": "Convert rich text from clipboard into Markdown format",
+      "mode": "no-view"
+    },
+    {
+      "name": "convert-clipboard-org",
+      "title": "Convert Clipboard to Org",
+      "description": "Convert rich text from clipboard into Org-mode format",
       "mode": "no-view"
     }
   ],
@@ -60,10 +68,14 @@
     "clipboardy": "^5.0.0",
     "linkedom": "^0.18.12",
     "node-clipboard": "^1.2.0",
-    "turndown": "^7.1.2"
+    "remark-gfm": "^4.0.1",
+    "remark-parse": "^11.0.0",
+    "turndown": "^7.1.2",
+    "unified": "^11.0.5"
   },
   "devDependencies": {
     "@raycast/eslint-config": "^1.0.11",
+    "@types/mdast": "^4.0.4",
     "@types/node": "20.8.10",
     "@types/react": "19.0.10",
     "@types/turndown": "^5.0.5",

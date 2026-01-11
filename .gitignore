@@ -1,5 +1,6 @@
 node_modules/
 dist/
+dist-firefox/
 .DS_Store
 
 # Chrome extension packaging artifacts
