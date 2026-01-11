@@ -128,10 +128,23 @@ main {
 
 footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   margin-top: 1rem;
   padding-top: 0.75rem;
   border-top: 1px solid #e5e9f0;
+}
+
+footer a {
+  font-size: 0.8rem;
+  color: #4f5d78;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+footer a:hover {
+  color: #2f6fed;
+  text-decoration: underline;
 }
 
 footer button {

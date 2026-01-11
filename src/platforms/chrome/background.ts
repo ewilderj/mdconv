@@ -4,7 +4,7 @@
  * Shows a success or failure badge on the extension icon for 2 seconds.
  * @param success - Whether to show success (✓) or failure (✗) badge
  */
-async function showBadge(success: boolean): Promise<void> {
+async function showChromeBadge(success: boolean): Promise<void> {
   if (success) {
     await chrome.action.setBadgeText({ text: "✓" });
     await chrome.action.setBadgeBackgroundColor({ color: "#1b8a5a" });
@@ -73,9 +73,9 @@ chrome.commands.onCommand.addListener(async (command) => {
         return;
       }
       
-      await showBadge(response?.success ?? false);
+      await showChromeBadge(response?.success ?? false);
     } catch (error) {
-      await showBadge(false);
+      await showChromeBadge(false);
     }
   }
 });
@@ -115,12 +115,12 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       }
       
       if (response && response.success) {
-        await showBadge(true);
+        await showChromeBadge(true);
       } else {
         throw new Error(response?.error || "Conversion failed");
       }
     } catch (error) {
-      await showBadge(false);
+      await showChromeBadge(false);
     }
   }
 });

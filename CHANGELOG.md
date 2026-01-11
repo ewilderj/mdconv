@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-01-03
+
+### Added
+- **Keyboard shortcut**: `Ctrl+Shift+M` (Windows/Linux) or `Cmd+Shift+M` (macOS) to copy selection as Markdown
+- **Table support**: GFM-style Markdown tables from Word, Google Docs, and web pages
+- **Help documentation**: "How to use" link in popup footer and extension icon context menu
+- **User guide**: [HELP.md](HELP.md) with detailed usage instructions
+
+### Improved
+- **Tables**: Smart header detection from bold text in first row
+- **Images in tables**: Inline images in table cells are now preserved correctly
+- **Firefox parity**: Full feature parity with Chrome extension including keyboard shortcuts
+
+### Technical
+- 84 tests with new table conversion and fixture-based validation
+
 ## [1.0.1] - 2026-01-02
 
 ### Changed
@@ -48,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Centralized environment configuration
 - Consistent error handling and logging patterns
 
-[Unreleased]: https://github.com/ewilderj/mdconv/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/ewilderj/mdconv/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/ewilderj/mdconv/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/ewilderj/mdconv/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/ewilderj/mdconv/releases/tag/v1.0.0

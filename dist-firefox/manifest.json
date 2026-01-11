@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Markdown Converter",
   "description": "Convert rich text from the clipboard into Markdown directly from the toolbar or context menu.",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "browser_specific_settings": {
     "gecko": {
       "id": "mdconv@ewilderj.github.io",
@@ -54,5 +54,14 @@
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
+  },
+  "commands": {
+    "convert-clipboard": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+M",
+        "mac": "Command+Shift+M"
+      },
+      "description": "Copy highlighted text as Markdown"
+    }
   }
 }

@@ -1,5 +1,11 @@
 # Markdown Converter Changelog
 
+## [1.1.0] - 2026-01-03
+
+- GFM-style table conversion from Word and Google Docs
+- Inline images in table cells are now preserved correctly
+- Smart header detection from bold text in first row
+
 ## [1.0.1] - 2026-01-02
 
 - Simplified UX: replaced preview UI with instant HUD notification

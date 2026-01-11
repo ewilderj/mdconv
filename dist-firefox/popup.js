@@ -353,9 +353,9 @@ Rules.prototype = {
     for (var i = 0; i < this.array.length; i++) fn(this.array[i], i);
   }
 };
-function findRule(rules2, node, options) {
-  for (var i = 0; i < rules2.length; i++) {
-    var rule = rules2[i];
+function findRule(rules3, node, options) {
+  for (var i = 0; i < rules3.length; i++) {
+    var rule = rules3[i];
     if (filterValue(rule, node, options)) return rule;
   }
   return void 0;
@@ -737,6 +737,72 @@ function canConvert(input) {
 }
 var turndown_browser_es_default = TurndownService;
 
+// node_modules/turndown-plugin-gfm/lib/turndown-plugin-gfm.es.js
+var indexOf = Array.prototype.indexOf;
+var every = Array.prototype.every;
+var rules2 = {};
+rules2.tableCell = {
+  filter: ["th", "td"],
+  replacement: function(content, node) {
+    return cell(content, node);
+  }
+};
+rules2.tableRow = {
+  filter: "tr",
+  replacement: function(content, node) {
+    var borderCells = "";
+    var alignMap = { left: ":--", right: "--:", center: ":-:" };
+    if (isHeadingRow(node)) {
+      for (var i = 0; i < node.childNodes.length; i++) {
+        var border = "---";
+        var align = (node.childNodes[i].getAttribute("align") || "").toLowerCase();
+        if (align) border = alignMap[align] || border;
+        borderCells += cell(border, node.childNodes[i]);
+      }
+    }
+    return "\n" + content + (borderCells ? "\n" + borderCells : "");
+  }
+};
+rules2.table = {
+  // Only convert tables with a heading row.
+  // Tables with no heading row are kept using `keep` (see below).
+  filter: function(node) {
+    return node.nodeName === "TABLE" && isHeadingRow(node.rows[0]);
+  },
+  replacement: function(content) {
+    content = content.replace("\n\n", "\n");
+    return "\n\n" + content + "\n\n";
+  }
+};
+rules2.tableSection = {
+  filter: ["thead", "tbody", "tfoot"],
+  replacement: function(content) {
+    return content;
+  }
+};
+function isHeadingRow(tr) {
+  var parentNode = tr.parentNode;
+  return parentNode.nodeName === "THEAD" || parentNode.firstChild === tr && (parentNode.nodeName === "TABLE" || isFirstTbody(parentNode)) && every.call(tr.childNodes, function(n) {
+    return n.nodeName === "TH";
+  });
+}
+function isFirstTbody(element) {
+  var previousSibling = element.previousSibling;
+  return element.nodeName === "TBODY" && (!previousSibling || previousSibling.nodeName === "THEAD" && /^\s*$/i.test(previousSibling.textContent));
+}
+function cell(content, node) {
+  var index = indexOf.call(node.parentNode.childNodes, node);
+  var prefix = " ";
+  if (index === 0) prefix = "| ";
+  return prefix + content + " |";
+}
+function tables(turndownService) {
+  turndownService.keep(function(node) {
+    return node.nodeName === "TABLE" && !isHeadingRow(node.rows[0]);
+  });
+  for (var key in rules2) turndownService.addRule(key, rules2[key]);
+}
+
 // src/core/env.ts
 function getProcessEnv() {
   return typeof globalThis !== "undefined" && globalThis.process?.env || {};
@@ -976,6 +1042,149 @@ function promoteWordHeadingsInPlace(doc) {
       heading.id = paragraph.id;
     }
     paragraph.replaceWith(heading);
+  }
+}
+function rowAppearsToBeHeader(row) {
+  const cells = Array.from(row.cells);
+  if (cells.length === 0) {
+    return false;
+  }
+  return cells.every((cell2) => {
+    const textContent = cell2.textContent?.trim();
+    if (!textContent) {
+      return true;
+    }
+    const firstChild = cell2.firstElementChild;
+    if (firstChild && (firstChild.tagName === "B" || firstChild.tagName === "STRONG")) {
+      const boldText = firstChild.textContent?.trim() ?? "";
+      if (boldText === textContent) {
+        return true;
+      }
+    }
+    const style = cell2.getAttribute("style") ?? "";
+    if (/font-weight\s*:\s*(bold|[6-9]\d\d)/i.test(style)) {
+      return true;
+    }
+    const spans = Array.from(cell2.querySelectorAll("span"));
+    for (const span of spans) {
+      const spanStyle = span.getAttribute("style") ?? "";
+      if (/font-weight\s*:\s*(bold|[6-9]\d\d)/i.test(spanStyle)) {
+        const spanText = span.textContent?.trim() ?? "";
+        if (spanText === textContent) {
+          return true;
+        }
+      }
+    }
+    const boldElements = Array.from(cell2.querySelectorAll("b, strong"));
+    for (const boldEl of boldElements) {
+      const boldText = boldEl.textContent?.trim() ?? "";
+      if (boldText === textContent) {
+        return true;
+      }
+    }
+    return false;
+  });
+}
+function extractCellContentWithoutBold(cell2) {
+  const firstChild = cell2.firstElementChild;
+  if (firstChild && (firstChild.tagName === "B" || firstChild.tagName === "STRONG")) {
+    const boldText = firstChild.textContent?.trim() ?? "";
+    const cellText = cell2.textContent?.trim() ?? "";
+    if (boldText === cellText) {
+      return boldText;
+    }
+  }
+  const span = cell2.querySelector("span");
+  if (span) {
+    const spanStyle = span.getAttribute("style") ?? "";
+    if (/font-weight\s*:\s*(bold|[6-9]\d\d)/i.test(spanStyle)) {
+      const spanText = span.textContent?.trim() ?? "";
+      const cellText = cell2.textContent?.trim() ?? "";
+      if (spanText === cellText) {
+        return spanText;
+      }
+    }
+  }
+  const boldEl = cell2.querySelector("b, strong");
+  if (boldEl) {
+    const boldText = boldEl.textContent?.trim() ?? "";
+    const cellText = cell2.textContent?.trim() ?? "";
+    if (boldText === cellText) {
+      return boldText;
+    }
+  }
+  return cell2.textContent?.trim() ?? "";
+}
+function normalizeTableHeaders(doc) {
+  const tables2 = Array.from(doc.body.querySelectorAll("table"));
+  for (const table of tables2) {
+    if (table.querySelector("th")) {
+      continue;
+    }
+    const firstRow = table.querySelector("tr");
+    if (!firstRow) {
+      continue;
+    }
+    if (!rowAppearsToBeHeader(firstRow)) {
+      continue;
+    }
+    const cells = Array.from(firstRow.cells);
+    for (const cell2 of cells) {
+      if (cell2.tagName === "TD") {
+        const th = doc.createElement("th");
+        th.textContent = extractCellContentWithoutBold(cell2);
+        for (const attr of Array.from(cell2.attributes)) {
+          if (attr.name.toLowerCase() !== "style") {
+            th.setAttribute(attr.name, attr.value);
+          }
+        }
+        cell2.replaceWith(th);
+      }
+    }
+    if (!firstRow.closest("thead")) {
+      const thead = doc.createElement("thead");
+      const tbody = table.querySelector("tbody") ?? doc.createElement("tbody");
+      const remainingRows = Array.from(table.querySelectorAll("tr")).slice(1);
+      if (!table.querySelector("tbody")) {
+        for (const row of remainingRows) {
+          tbody.appendChild(row);
+        }
+      }
+      thead.appendChild(firstRow);
+      table.insertBefore(thead, table.firstChild);
+      if (!table.contains(tbody) && tbody.children.length > 0) {
+        table.appendChild(tbody);
+      }
+    }
+  }
+}
+function simplifyTableCells(doc) {
+  const tables2 = Array.from(doc.body.querySelectorAll("table"));
+  for (const table of tables2) {
+    const cells = Array.from(table.querySelectorAll("td, th"));
+    for (const cell2 of cells) {
+      const hasBlockElements = cell2.querySelector("p, div");
+      if (!hasBlockElements) {
+        continue;
+      }
+      const hasPreservableContent = cell2.querySelector("img, a");
+      if (hasPreservableContent) {
+        const blockElements2 = Array.from(cell2.querySelectorAll("p, div"));
+        for (const block of blockElements2) {
+          while (block.firstChild) {
+            block.parentNode?.insertBefore(block.firstChild, block);
+          }
+          block.remove();
+        }
+        const brs = Array.from(cell2.querySelectorAll("br"));
+        for (const br of brs) {
+          br.remove();
+        }
+      } else {
+        const textContent = cell2.textContent?.trim() ?? "";
+        cell2.textContent = textContent;
+      }
+    }
   }
 }
 function shouldTransformToCodeBlock(element) {
@@ -1547,6 +1756,8 @@ function normalizeGoogleDocsHtml(html, context) {
     convertGoogleDocsStylesToSemanticHtml(doc);
     groupMonospaceParagraphsIntoCodeBlocks(doc);
     removeNonBreakingSpaces(doc);
+    normalizeTableHeaders(doc);
+    simplifyTableCells(doc);
     convertMonospaceSpansToCode(doc);
     convertInlineBoundarySpacesToNbsp(doc);
     convertBoldSpansToStrong(doc);
@@ -1649,6 +1860,8 @@ function normalizeWordHtml(html, context) {
     replaceOfficeParagraphNodes(doc);
     convertInlineBoundarySpacesToNbsp(doc);
     promoteWordHeadingsInPlace(doc);
+    normalizeTableHeaders(doc);
+    simplifyTableCells(doc);
     transformMonospaceBlocks(doc);
     convertMonospaceSpansToCode(doc);
     convertBoldSpansToStrong(doc);
@@ -1664,6 +1877,7 @@ function createTurndownService(imageHandling = "preserve") {
     codeBlockStyle: "fenced",
     linkStyle: "inlined"
   });
+  turndownInstance.use(tables);
   turndownInstance.keep(["pre", "code"]);
   turndownInstance.addRule("listParagraph", {
     filter: function(node) {

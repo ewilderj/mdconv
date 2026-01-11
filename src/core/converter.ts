@@ -416,9 +416,9 @@ function normalizeTableHeaders(doc: Document): void {
 }
 
 /**
- * Simplifies table cell content by replacing nested block elements with plain text.
+ * Simplifies table cell content by unwrapping nested block elements while preserving inline content.
  * Google Docs wraps cell content in <p><span>text</span></p> which causes
- * turndown to add unwanted newlines. This flattens cells to just their text content.
+ * turndown to add unwanted newlines. This flattens block wrappers but keeps images and links.
  */
 function simplifyTableCells(doc: Document): void {
   const tables = Array.from(doc.body.querySelectorAll("table"));
@@ -428,14 +428,34 @@ function simplifyTableCells(doc: Document): void {
 
     for (const cell of cells) {
       // Check if cell contains block elements that might cause formatting issues
-      const hasBlockElements = cell.querySelector("p, div, br");
+      const hasBlockElements = cell.querySelector("p, div");
       if (!hasBlockElements) {
         continue;
       }
 
-      // Get plain text content and replace cell's innerHTML
-      const textContent = cell.textContent?.trim() ?? "";
-      cell.textContent = textContent;
+      // Check if cell contains images or links that should be preserved
+      const hasPreservableContent = cell.querySelector("img, a");
+      
+      if (hasPreservableContent) {
+        // Unwrap block elements but preserve their inline children
+        const blockElements = Array.from(cell.querySelectorAll("p, div"));
+        for (const block of blockElements) {
+          // Replace block with its children
+          while (block.firstChild) {
+            block.parentNode?.insertBefore(block.firstChild, block);
+          }
+          block.remove();
+        }
+        // Remove any remaining br elements that could cause issues
+        const brs = Array.from(cell.querySelectorAll("br"));
+        for (const br of brs) {
+          br.remove();
+        }
+      } else {
+        // No images/links - safe to use plain text
+        const textContent = cell.textContent?.trim() ?? "";
+        cell.textContent = textContent;
+      }
     }
   }
 }
