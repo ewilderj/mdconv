@@ -90,6 +90,57 @@ Table support is provided by the official `turndown-plugin-gfm` package which of
 8. **Clear output** button removes the current Markdown and resets the status message.
 9. **Visual feedback** shows badge indicators on the extension icon for context menu conversion success/failure.
 10. **Permissions flow** requests `clipboardRead`, `clipboardWrite`, `contextMenus`, and `scripting` permissions on demand.
+11. **Global keyboard shortcut** converts the current text selection to Markdown with a single keypress, matching the semantics of standard copy (`Cmd/Ctrl+C`).
+
+#### Keyboard Shortcut Details
+A configurable keyboard shortcut enables quick selection-to-Markdown conversion from anywhere in the browser:
+
+**Default shortcut:**
+- Windows/Linux: `Ctrl+Shift+M`
+- macOS: `Cmd+Shift+M`
+
+The "M" mnemonic is chosen for "Markdown" - intuitive and memorable.
+
+**Behavior:**
+1. User selects text on any webpage
+2. User presses the shortcut
+3. Extension captures the selection HTML (same as context menu "Copy as Markdown")
+4. Converts to Markdown using shared conversion logic
+5. Writes Markdown to clipboard
+6. Shows brief visual feedback confirming success
+
+**Selection-only semantics:**
+- If text is selected: Convert selection to Markdown and copy to clipboard
+- If no text is selected: Do nothing (no badge, no clipboard change)
+- This matches standard `Cmd/Ctrl+C` behavior - copy requires a selection
+- Prevents accidental clipboard overwrites when shortcut is triggered inadvertently
+
+**User feedback mechanism:**
+- On success: Extension badge shows green checkmark (✓) for 2 seconds, then clears
+- On failure: Extension badge shows red X (✗) for 2 seconds, then clears
+- No selection: No feedback (silent no-op, matching Cmd+C behavior)
+- Badge behavior matches existing context menu feedback pattern for consistency
+
+**Customization:**
+- Users can modify the shortcut via `chrome://extensions/shortcuts`
+- The manifest specifies a `suggested_key` which Chrome may not honor if it conflicts with existing bindings
+- If no shortcut is active (conflict or user cleared it), the feature is simply unavailable until configured
+
+**Implementation approach:**
+- Add `commands` section to `manifest.json` with `suggested_key` for the shortcut
+- Register `chrome.commands.onCommand` listener in background service worker
+- Reuse existing selection capture and conversion logic from context menu handler
+- Reuse existing badge feedback mechanism from context menu handler
+
+**Limitations:**
+- Shortcut may conflict with browser or website shortcuts; user must resolve via Chrome settings
+- No popup preview - conversion happens immediately (matches context menu behavior)
+- Cannot work when Chrome is not focused (OS limitation)
+
+**Alternative approaches considered:**
+- Desktop notification instead of badge: More visible but intrusive for frequent use
+- Toast injection into page: Requires content script coordination and may fail on restricted pages
+- Sound feedback: Accessibility concerns and user preference variability
 
 ### Raycast Extension (In Development)
 11. **Native clipboard access** reads rich HTML content from macOS clipboard via `pbpaste`.
@@ -131,6 +182,7 @@ Table support is provided by the official `turndown-plugin-gfm` package which of
 ### Browser Extension
 - **Clipboard API variability**: Some environments block `navigator.clipboard.read`. Provide fallback to plain text and clear messaging.
 - **Permission friction**: Users may deny clipboard access. Surface retry guidance and link to Chrome permission settings.
+- **Keyboard shortcut conflicts**: Default shortcut may conflict with browser, OS, or website shortcuts. Users can reconfigure via `chrome://extensions/shortcuts`. Document this in help/FAQ.
 
 ### Raycast Extension
 - **macOS system dependencies**: Relies on `pbpaste` availability and Raycast API stability. Implement graceful degradation and clear error messaging.

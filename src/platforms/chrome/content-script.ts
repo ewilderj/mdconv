@@ -4,40 +4,87 @@ import { chromeConverter } from "./chrome-converter.js";
 // Listen for messages from the background script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "convertSelection") {
-    try {
-      const selection = window.getSelection();
-      if (!selection || selection.rangeCount === 0) {
-        sendResponse({ success: false, error: "No selection found" });
-        return true;
-      }
-
-      const range = selection.getRangeAt(0);
-      const container = document.createElement('div');
-      container.appendChild(range.cloneContents());
-      
-      const html = container.innerHTML;
-      const text = selection.toString();
-
-      // Use your existing converter with a proper DOMParser
-      const markdown = chromeConverter.convertClipboardPayload(html || undefined, text || undefined);
-
-      // Copy to clipboard
-      navigator.clipboard.writeText(markdown)
-        .then(() => {
-          sendResponse({ success: true, markdown });
-        })
-        .catch((error) => {
-          sendResponse({ success: false, error: error.message, markdown });
-        });
-
-    } catch (error) {
-      sendResponse({ success: false, error: (error as Error).message });
-    }
-    
-    // Return true to indicate we'll send response asynchronously
-    return true;
+    handleConvertSelection(sendResponse);
+    return true; // Will send response asynchronously
+  }
+  
+  if (request.action === "convertSelectionForShortcut") {
+    handleConvertSelectionForShortcut(sendResponse);
+    return true; // Will send response asynchronously
   }
   
   // Return false for unhandled messages
   return false;
 });
+
+/**
+ * Handles converting the current text selection to Markdown.
+ * Used by the context menu "Copy as Markdown" feature.
+ */
+function handleConvertSelection(sendResponse: (response: unknown) => void): void {
+  try {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      sendResponse({ success: false, error: "No selection found" });
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    const container = document.createElement('div');
+    container.appendChild(range.cloneContents());
+    
+    const html = container.innerHTML;
+    const text = selection.toString();
+
+    const markdown = chromeConverter.convertClipboardPayload(html || undefined, text || undefined);
+
+    navigator.clipboard.writeText(markdown)
+      .then(() => {
+        sendResponse({ success: true, markdown });
+      })
+      .catch((error) => {
+        sendResponse({ success: false, error: error.message, markdown });
+      });
+
+  } catch (error) {
+    sendResponse({ success: false, error: (error as Error).message });
+  }
+}
+
+/**
+ * Handles converting selection to Markdown for keyboard shortcut.
+ * Returns noSelection: true if nothing is selected (silent no-op).
+ */
+function handleConvertSelectionForShortcut(sendResponse: (response: unknown) => void): void {
+  try {
+    const selection = window.getSelection();
+    
+    // No selection = silent no-op (matches Cmd+C behavior)
+    if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+      sendResponse({ success: true, noSelection: true });
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    const container = document.createElement('div');
+    container.appendChild(range.cloneContents());
+    
+    const html = container.innerHTML;
+    const text = selection.toString();
+
+    const markdown = chromeConverter.convertClipboardPayload(html || undefined, text || undefined);
+
+    navigator.clipboard.writeText(markdown)
+      .then(() => {
+        sendResponse({ success: true, markdown });
+      })
+      .catch((error) => {
+        sendResponse({ success: false, error: error.message, markdown });
+      });
+
+  } catch (error) {
+    const errorMessage = (error as Error).message;
+    console.error("[mdconv] Selection conversion failed:", errorMessage);
+    sendResponse({ success: false, error: errorMessage });
+  }
+}
