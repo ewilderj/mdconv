@@ -277,8 +277,6 @@ A custom `toOrg()` function walks the mdast AST and produces Org syntax:
 - `remark-parse` - Markdown parser
 - `remark-gfm` - GFM extensions (tables, strikethrough)
 
-These are already installed as dev dependencies for the `scripts/md2org.mjs` proof-of-concept.
-
 #### File Structure
 ```
 src/core/

@@ -59,7 +59,11 @@ A native Raycast command for clipboard conversion, on macOS only:
 
 ## For org users
 
-If, like the author, you also use [org-mode](https://orgmode.org/) files a lot, please consult the [md2org.sh](scripts/md2org.sh) script. Throw this in your Raycast's script directory and it gives you an easy way to convert the copied Markdown into `org` syntax, assuming you have [pandoc](https://pandoc.org/) installed.
+If you use [org-mode](https://orgmode.org/), mdconv has built-in Org output support:
+
+- **Browser extension**: Select "Org" from the format dropdown, or use the "Copy as Org" context menu
+- **Keyboard shortcut**: Cmd+Shift+O (Mac) / Ctrl+Shift+O (Windows/Linux)
+- **Raycast**: Use the "Convert Clipboard to Org" command
 
 ## For Developers
 

@@ -27,7 +27,6 @@
     "sync-version": "node scripts/sync-version.mjs",
     "prebuild": "npm run sync-version",
     "test": "tsx --test \"test/**/*.test.ts\"",
-    "md2org": "node scripts/md2org.mjs",
     "build:raycast": "cd raycast && npm run build",
     "prebuild:raycast": "npm run sync-version",
     "dev:raycast": "cd raycast && npm run dev",
