@@ -68,8 +68,10 @@
     "clipboardy": "^5.0.0",
     "linkedom": "^0.18.12",
     "node-clipboard": "^1.2.0",
+    "rehype-stringify": "^10.0.1",
     "remark-gfm": "^4.0.1",
     "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.1.2",
     "turndown": "^7.1.2",
     "unified": "^11.0.5"
   },

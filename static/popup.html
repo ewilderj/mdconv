@@ -11,16 +11,33 @@
       <h1>Markdown Converter</h1>
     </header>
     <main>
-      <p class="helper-text">Paste formatted content and we'll copy the converted text for you.</p>
-      <div class="controls">
+      <div class="mode-header">
+        <p id="modeLabel" class="mode-label">Rich Text → Markdown</p>
+        <button id="flipModeButton" type="button" class="flip-button" title="Switch conversion direction">⇄</button>
+      </div>
+      <p id="helperText" class="helper-text">Paste formatted content (Word, Google Docs, etc.) to convert.</p>
+      
+      <!-- Rich text → Markdown/Org mode (existing) -->
+      <div id="toMarkdownControls" class="controls">
         <select id="formatSelect" aria-label="Output format">
           <option value="markdown">Markdown</option>
           <option value="org">Org</option>
         </select>
-        <button id="pasteButton" type="button">Paste &amp; Convert</button>
+        <button id="pasteButton" type="button">Convert</button>
       </div>
+      
+      <!-- Plain text → Rich text mode (new) -->
+      <div id="toRichTextControls" class="controls hidden">
+        <select id="targetSelect" aria-label="Target application">
+          <option value="google-docs">Google Docs</option>
+          <option value="word">Microsoft Word</option>
+          <option value="html">HTML (Generic)</option>
+        </select>
+        <button id="convertToRichButton" type="button">Convert</button>
+      </div>
+      
       <label class="field">
-        <textarea id="output" placeholder="Converted Markdown appears here" readonly></textarea>
+        <textarea id="output" placeholder="Converted content appears here" readonly></textarea>
       </label>
       <section id="status" role="status" aria-live="polite"></section>
     </main>

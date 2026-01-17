@@ -43,6 +43,8 @@
     "node": ">=25.0.0"
   },
   "dependencies": {
+    "rehype-stringify": "^10.0.1",
+    "remark-rehype": "^11.1.2",
     "turndown": "^7.1.2",
     "turndown-plugin-gfm": "^1.0.2"
   },

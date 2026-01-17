@@ -51,6 +51,13 @@
         "mac": "Command+Shift+O"
       },
       "description": "Copy highlighted text as Org"
+    },
+    "convert-clipboard-rich": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+R",
+        "mac": "Command+Shift+R"
+      },
+      "description": "Copy highlighted text as Rich Text"
     }
   }
 }

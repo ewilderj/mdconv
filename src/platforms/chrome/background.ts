@@ -1,5 +1,7 @@
 /// <reference types="chrome" />
 
+const RICH_TEXT_TARGET_STORAGE_KEY = "mdconv.richTextTarget";
+
 /**
  * Shows a success or failure badge on the extension icon for 2 seconds.
  * @param success - Whether to show success (✓) or failure (✗) badge
@@ -18,6 +20,18 @@ async function showChromeBadge(success: boolean): Promise<void> {
   }, 2000);
 }
 
+/**
+ * Gets the stored rich text target preference.
+ */
+async function getRichTextTarget(): Promise<string> {
+  try {
+    const stored = await chrome.storage.local.get(RICH_TEXT_TARGET_STORAGE_KEY);
+    return stored[RICH_TEXT_TARGET_STORAGE_KEY] || "google-docs";
+  } catch (error) {
+    return "google-docs";
+  }
+}
+
 chrome.runtime.onInstalled.addListener(() => {
   // Create context menu items for text selection
   chrome.contextMenus.create({
@@ -32,6 +46,12 @@ chrome.runtime.onInstalled.addListener(() => {
     contexts: ["selection"]
   });
   
+  chrome.contextMenus.create({
+    id: "copyAsRichText",
+    title: "Copy as Rich Text",
+    contexts: ["selection"]
+  });
+  
   // Create context menu item for extension icon (right-click on toolbar icon)
   chrome.contextMenus.create({
     id: "openHelp",
@@ -42,8 +62,18 @@ chrome.runtime.onInstalled.addListener(() => {
 
 // Handle keyboard shortcut commands
 chrome.commands.onCommand.addListener(async (command) => {
-  if (command === "convert-clipboard" || command === "convert-clipboard-org") {
-    const format = command === "convert-clipboard-org" ? "org" : "markdown";
+  if (command === "convert-clipboard" || command === "convert-clipboard-org" || command === "convert-clipboard-rich") {
+    let format: string;
+    let target: string | undefined;
+    
+    if (command === "convert-clipboard-org") {
+      format = "org";
+    } else if (command === "convert-clipboard-rich") {
+      format = "rich";
+      target = await getRichTextTarget();
+    } else {
+      format = "markdown";
+    }
     
     // Get the active tab to run the content script
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -59,7 +89,8 @@ chrome.commands.onCommand.addListener(async (command) => {
         // Try to send message to content script first
         response = await chrome.tabs.sendMessage(tab.id, {
           action: "convertSelectionForShortcut",
-          format
+          format,
+          target
         });
       } catch (error) {
         // If content script isn't available, inject it and try again
@@ -74,7 +105,8 @@ chrome.commands.onCommand.addListener(async (command) => {
         // Try sending the message again
         response = await chrome.tabs.sendMessage(tab.id, {
           action: "convertSelectionForShortcut",
-          format
+          format,
+          target
         });
       }
       
@@ -99,12 +131,23 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     return;
   }
   
-  // Handle copy as Markdown/Org
+  // Handle copy as Markdown/Org/Rich Text
   const isMarkdown = info.menuItemId === "copyAsMarkdown";
   const isOrg = info.menuItemId === "copyAsOrg";
+  const isRichText = info.menuItemId === "copyAsRichText";
   
-  if ((isMarkdown || isOrg) && info.selectionText && tab?.id) {
-    const format = isOrg ? "org" : "markdown";
+  if ((isMarkdown || isOrg || isRichText) && info.selectionText && tab?.id) {
+    let format: string;
+    let target: string | undefined;
+    
+    if (isOrg) {
+      format = "org";
+    } else if (isRichText) {
+      format = "rich";
+      target = await getRichTextTarget();
+    } else {
+      format = "markdown";
+    }
     
     try {
       let response;
@@ -113,7 +156,8 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         // Try to send message to content script first
         response = await chrome.tabs.sendMessage(tab.id, {
           action: "convertSelection",
-          format
+          format,
+          target
         });
       } catch (error) {
         // If content script isn't available, inject it and try again
@@ -128,7 +172,8 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         // Try sending the message again
         response = await chrome.tabs.sendMessage(tab.id, {
           action: "convertSelection",
-          format
+          format,
+          target
         });
       }
       
