@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Markdown Converter for the web, Word, and Google Docs",
   "description": "Convert rich text from the clipboard into Markdown directly from the toolbar or context menu.",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "action": {
     "default_popup": "popup.html",
     "default_title": "Markdown Converter"

@@ -1,6 +1,6 @@
 {
   "name": "clipboard-markdown-extension",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Multi-platform tool that converts pasted rich text into Markdown (Chrome extension + Raycast extension)",
   "type": "module",
   "scripts": {
