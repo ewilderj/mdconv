@@ -55,8 +55,8 @@ function serializeNode(node: Node, ctx: Context): string {
 
     case 'code': {
       const code = node as import('mdast').Code;
-      const lang = code.lang || '';
-      return `#+BEGIN_SRC ${lang}\n${code.value}\n#+END_SRC\n\n`;
+      const lang = code.lang ? ` ${code.lang}` : '';
+      return `#+BEGIN_SRC${lang}\n${code.value}\n#+END_SRC\n\n`;
     }
 
     case 'thematicBreak':
