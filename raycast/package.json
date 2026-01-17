@@ -36,6 +36,24 @@
       "title": "Convert Clipboard to Org",
       "description": "Convert rich text from clipboard into Org-mode format",
       "mode": "no-view"
+    },
+    {
+      "name": "convert-to-html",
+      "title": "Convert Clipboard to HTML",
+      "description": "Convert Markdown or Org text to generic HTML rich text",
+      "mode": "no-view"
+    },
+    {
+      "name": "convert-to-google-docs",
+      "title": "Convert Clipboard to Google Docs",
+      "description": "Convert Markdown or Org text to Google Docs optimized rich text",
+      "mode": "no-view"
+    },
+    {
+      "name": "convert-to-word",
+      "title": "Convert Clipboard to Word 365",
+      "description": "Convert Markdown or Org text to Microsoft Word optimized rich text",
+      "mode": "no-view"
     }
   ],
   "preferences": [
