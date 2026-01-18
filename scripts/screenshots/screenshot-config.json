@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Configuration for automated store screenshots. Fill in the placeholder URLs and test data below.",
+  
+  "testData": {
+    "googleDocUrl": "https://docs.google.com/document/d/1BRNY3_9JpGxkhyxxEA_rhtZ7J2_iW6griH4hMKZ7WcM/edit?tab=t.0",
+    "wordDocUrl": "https://onedrive.live.com/personal/d98659d6b8a22caa/_layouts/15/doc.aspx?resid=f8f799df-494f-482a-97f4-f04a6ba53bff&cid=d98659d6b8a22caa",
+    
+    "sampleMarkdown": "# Meeting Notes\n\n**Date:** January 15, 2026\n\n## Action Items\n\n- [ ] Review the PRD document\n- [ ] Update unit tests\n- [x] Fix table alignment bug\n\n## Discussion\n\nWe discussed the new *Org-mode* output feature. Key points:\n\n1. Users want `code blocks` preserved\n2. Tables should maintain alignment\n3. Links like [GitHub](https://github.com) must work\n\n| Feature | Status | Owner |\n|---------|--------|-------|\n| Markdown | ✓ Done | @alice |\n| Org-mode | ✓ Done | @bob |\n| Rich Text | In Progress | @charlie |",
+    
+    "sampleRichTextHtml": "<h1>Project Update</h1><p>This is <strong>bold</strong> and <em>italic</em> text with <code>inline code</code>.</p><ul><li>First item</li><li>Second item</li></ul>"
+  },
+  
+  "extensionId": "bcjhgmgahebcocmnbmpfjbincmggidlb",
+  
+  "output": {
+    "directory": "docs/screenshots",
+    "width": 1280,
+    "height": 800
+  },
+  
+  "screenshots": [
+    {
+      "id": "google-docs-source",
+      "name": "google-docs-source.png",
+      "description": "Google Doc page showing source content",
+      "type": "standard"
+    },
+    {
+      "id": "hero-markdown",
+      "name": "hero-markdown.png",
+      "description": "Extension popup showing Markdown conversion result (Google Doc)",
+      "type": "standard"
+    },
+    {
+      "id": "hero-markdown-word",
+      "name": "hero-markdown-word.png",
+      "description": "Extension popup showing Markdown conversion result (Word)",
+      "type": "standard"
+    },
+    {
+      "id": "hero-org",
+      "name": "hero-org.png",
+      "description": "Extension popup showing Org-mode conversion result",
+      "type": "standard"
+    },
+    {
+      "id": "reverse-conversion",
+      "name": "reverse-conversion.png",
+      "description": "Composite: Ghostty showing markdown source + Chrome popup in Markdown → Rich Text mode",
+      "type": "composite"
+    },
+    {
+      "id": "reverse-conversion-result",
+      "name": "reverse-conversion-result.png",
+      "description": "Composite: Ghostty showing markdown source + Google Doc with pasted rich text result",
+      "type": "composite"
+    },
+    {
+      "id": "context-menu",
+      "name": "context-menu.png",
+      "description": "Right-click context menu showing Copy as Markdown/Org options",
+      "type": "timed",
+      "note": "Requires 10 second timed capture to allow right-click"
+    }
+  ]
+}

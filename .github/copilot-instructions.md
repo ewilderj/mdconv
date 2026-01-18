@@ -66,6 +66,43 @@ Before concluding any substantial code change, ask:
 
 Run: `npm run typecheck && npm run build && npm run build:raycast && npm test` before declaring work complete.
 
+## Store screenshot capture
+
+When asked to retake or capture store screenshots, follow `scripts/screenshots/README.md`.
+
+### Quick reference
+
+**Standard capture (Chrome only):**
+```bash
+osascript -e 'tell application "Google Chrome" to activate' && sleep 0.5 && \
+BOUNDS=$(osascript -e 'tell application "Google Chrome" to get bounds of front window') && \
+X=$(echo $BOUNDS | cut -d',' -f1 | tr -d ' ') && Y=$(echo $BOUNDS | cut -d',' -f2 | tr -d ' ') && \
+X2=$(echo $BOUNDS | cut -d',' -f3 | tr -d ' ') && Y2=$(echo $BOUNDS | cut -d',' -f4 | tr -d ' ') && \
+PAD=40 && X=$((X - PAD)) && Y=$((Y - PAD)) && W=$((X2 - X + PAD)) && H=$((Y2 - Y + PAD)) && \
+screencapture -R "$X,$Y,$W,$H" OUTPUT.png && sips -z 800 1280 OUTPUT.png
+```
+
+**Composite capture (Ghostty in front of Chrome):**
+- Get Chrome bounds first, then activate Ghostty before capture
+- User positions Ghostty window manually over Chrome
+
+**Timed capture (context menus):**
+- Use `screencapture -T 10` for 10-second delay
+- User right-clicks during countdown
+
+### Screenshot set (in `docs/screenshots/`)
+| File | Description |
+|------|-------------|
+| `google-docs-source.png` | Google Doc with extension |
+| `hero-markdown.png` | Markdown conversion (Google Doc) |
+| `hero-markdown-word.png` | Markdown conversion (Word) |
+| `hero-org.png` | Org-mode conversion |
+| `reverse-conversion.png` | Ghostty + Chrome: MD → Rich Text |
+| `reverse-conversion-result.png` | Ghostty + Chrome: Result in Docs |
+| `context-menu.png` | Right-click context menu |
+
+All screenshots: 1280×800 PNG with 40px background border padding.
+
 ## Handy references
 - Chrome static assets: `static/`
 - Build artifacts: `dist/`
@@ -73,6 +110,7 @@ Run: `npm run typecheck && npm run build && npm run build:raycast && npm test` b
 - README & PRD in the repo root capture product expectations—update them if behavior changes.
 - **Environment variables:** Documented in `src/core/env.ts` with inline JSDoc
 - **Raycast changelog:** Always preserve `{PR_MERGE_DATE}` as a literal template variable (it gets substituted during publish)
+- **Store screenshots:** See `scripts/screenshots/README.md` for capture instructions
 
 ## Key lessons learned
 - **Consistent patterns matter** more than clever architectures for LLM maintainability
