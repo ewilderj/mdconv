@@ -1,9 +1,10 @@
 import { chromeConverter } from "./chrome-converter.js";
 import { convertMarkdownToOrg } from "../../core/md-to-org.js";
+import { convertMarkdownToSlack } from "../../core/md-to-slack.js";
 import { convertMarkdownToHtml, convertPlainTextToHtml } from "../../core/md-to-html.js";
 import { convertOrgToHtml } from "../../core/org-to-html.js";
 import { detectInputFormat, getFormatLabel, type DetectedFormat } from "../../core/format-detection.js";
-import { type HtmlTarget } from "../../core/html-targets.js";
+import { type HtmlTarget, isTextTarget } from "../../core/html-targets.js";
 
 console.log('[mdconv] popup.ts loaded');
 
@@ -383,7 +384,7 @@ async function handlePasteEvent(refs: UIRefs, event: ClipboardEvent) {
 }
 
 /**
- * Handles conversion from plain text (Markdown/Org/plain) to rich HTML.
+ * Handles conversion from plain text (Markdown/Org/plain) to rich HTML or Slack mrkdwn.
  */
 async function handleConvertToRichText(refs: UIRefs) {
   setStatus(refs, "Converting…", "info");
@@ -408,8 +409,31 @@ async function handleConvertToRichText(refs: UIRefs) {
     const detectedFormat = detectInputFormat(plain);
     const target = refs.targetSelect.value as HtmlTarget;
     
-    setStatus(refs, `Converting ${getFormatLabel(detectedFormat)} to rich text…`, "info");
+    setStatus(refs, `Converting ${getFormatLabel(detectedFormat)} to ${isTextTarget(target) ? 'text' : 'rich text'}…`, "info");
     
+    // Handle Slack (text output) differently from HTML targets
+    if (target === 'slack') {
+      // For Slack, convert to mrkdwn (plain text)
+      let slackText: string;
+      if (detectedFormat === 'org') {
+        // For Org, first convert to Markdown intermediary, then to Slack
+        // This is a limitation - direct Org->Slack would be better
+        slackText = convertMarkdownToSlack(plain);
+      } else {
+        // Markdown or plain text
+        slackText = convertMarkdownToSlack(plain);
+      }
+      
+      refs.output.value = slackText;
+      
+      // Write plain text to clipboard (Slack doesn't use HTML paste)
+      await writeClipboard(slackText);
+      
+      setStatus(refs, "Slack mrkdwn copied to clipboard. Paste directly into Slack.", "success");
+      return;
+    }
+    
+    // HTML targets (Google Docs, Word, generic HTML)
     let html: string;
     if (detectedFormat === 'plain') {
       html = convertPlainTextToHtml(plain, { target });
@@ -452,7 +476,7 @@ async function init() {
     if (stored[FORMAT_STORAGE_KEY] === "org" || stored[FORMAT_STORAGE_KEY] === "markdown") {
       refs.formatSelect.value = stored[FORMAT_STORAGE_KEY];
     }
-    if (stored[TARGET_STORAGE_KEY] === "google-docs" || stored[TARGET_STORAGE_KEY] === "word" || stored[TARGET_STORAGE_KEY] === "html") {
+    if (stored[TARGET_STORAGE_KEY] === "google-docs" || stored[TARGET_STORAGE_KEY] === "word" || stored[TARGET_STORAGE_KEY] === "html" || stored[TARGET_STORAGE_KEY] === "slack") {
       refs.targetSelect.value = stored[TARGET_STORAGE_KEY];
     }
     if (stored[MODE_STORAGE_KEY] === "to-markdown" || stored[MODE_STORAGE_KEY] === "to-rich-text") {

@@ -26,6 +26,8 @@ declare namespace Preferences {
   export type ConvertToGoogleDocs = ExtensionPreferences & {}
   /** Preferences accessible in the `convert-to-word` command */
   export type ConvertToWord = ExtensionPreferences & {}
+  /** Preferences accessible in the `convert-to-slack` command */
+  export type ConvertToSlack = ExtensionPreferences & {}
 }
 
 declare namespace Arguments {
@@ -39,5 +41,7 @@ declare namespace Arguments {
   export type ConvertToGoogleDocs = {}
   /** Arguments passed to the `convert-to-word` command */
   export type ConvertToWord = {}
+  /** Arguments passed to the `convert-to-slack` command */
+  export type ConvertToSlack = {}
 }
 

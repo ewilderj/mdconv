@@ -1,0 +1,8 @@
+Project status:
+```
+| Task      | Status      | Owner |
+|-----------|-------------|-------|
+| Design    | Complete    | Alice |
+| Dev       | In Progress | Bob   |
+| Testing   | Not Started | Carol |
+```

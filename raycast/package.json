@@ -54,6 +54,12 @@
       "title": "Convert Clipboard to Word 365",
       "description": "Convert Markdown or Org text to Microsoft Word optimized rich text",
       "mode": "no-view"
+    },
+    {
+      "name": "convert-to-slack",
+      "title": "Convert Clipboard to Slack",
+      "description": "Convert Markdown or Org text to Slack mrkdwn format",
+      "mode": "no-view"
     }
   ],
   "preferences": [

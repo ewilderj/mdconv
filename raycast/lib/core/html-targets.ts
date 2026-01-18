@@ -5,12 +5,24 @@
  */
 
 /**
- * Target application for HTML output.
+ * Target application for output.
  * - 'html': Generic semantic HTML
  * - 'google-docs': Optimized for Google Docs paste
  * - 'word': Optimized for Microsoft Word paste
+ * - 'slack': Slack mrkdwn format (plain text, not HTML)
  */
-export type HtmlTarget = 'html' | 'google-docs' | 'word';
+export type HtmlTarget = 'html' | 'google-docs' | 'word' | 'slack';
+
+/**
+ * Returns true if the target outputs plain text (not HTML).
+ * Used to determine clipboard write strategy.
+ * 
+ * @param target - The output target
+ * @returns true if target outputs plain text
+ */
+export function isTextTarget(target: HtmlTarget): boolean {
+  return target === 'slack';
+}
 
 /**
  * Returns a human-readable label for the target.
@@ -27,13 +39,15 @@ export function getTargetLabel(target: HtmlTarget): string {
       return 'Google Docs';
     case 'word':
       return 'Microsoft Word';
+    case 'slack':
+      return 'Slack';
   }
 }
 
 /**
- * All available HTML targets for UI rendering.
+ * All available output targets for UI rendering.
  */
-export const HTML_TARGETS: readonly HtmlTarget[] = ['html', 'google-docs', 'word'] as const;
+export const HTML_TARGETS: readonly HtmlTarget[] = ['html', 'google-docs', 'word', 'slack'] as const;
 
 /**
  * Default styles for Google Docs compatibility.

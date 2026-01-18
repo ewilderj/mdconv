@@ -297,12 +297,13 @@ describe("Plain text to HTML conversion", () => {
 
 describe("HTML targets", () => {
   it("should export all targets", () => {
-    assert.deepStrictEqual(HTML_TARGETS, ["html", "google-docs", "word"]);
+    assert.deepStrictEqual(HTML_TARGETS, ["html", "google-docs", "word", "slack"]);
   });
 
   it("should provide correct labels", () => {
     assert.strictEqual(getTargetLabel("html"), "HTML (Generic)");
     assert.strictEqual(getTargetLabel("google-docs"), "Google Docs");
     assert.strictEqual(getTargetLabel("word"), "Microsoft Word");
+    assert.strictEqual(getTargetLabel("slack"), "Slack");
   });
 });

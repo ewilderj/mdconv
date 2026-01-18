@@ -7,6 +7,7 @@
 > - ✅ Org-mode output format (Section 11)
 > - ✅ Bidirectional rich text conversion (Section 12)
 > - ⏳ Raycast extension (Store submission in review - PR #24129)
+> - ⏳ Slack mrkdwn output (Section 13 - in design)
 
 ## 1. Summary
 A multi-platform clipboard converter that enables bidirectional conversion between rich text and plain text formats. Initially delivered as a Chrome/Edge browser extension, with Raycast integration for native macOS workflow.
@@ -408,7 +409,7 @@ Users select the target application for optimized styling:
 | **HTML (Generic)** | Standard semantic HTML | Clean `<h1>`, `<p>`, `<strong>`, `<code>` tags |
 | **Google Docs** | Optimized for Google Docs paste | Inline styles matching Docs defaults, `<span>` wrappers |
 | **Microsoft Word** | Optimized for Word paste | MSO-specific CSS, `mso-*` style hints |
-| **Slack** _(future)_ | Optimized for Slack paste | Slack-compatible HTML subset |
+| **Slack** _(in progress)_ | Optimized for Slack paste | Slack mrkdwn text format (see Section 13) |
 | **Microsoft Teams** _(future)_ | Optimized for Teams paste | Teams-compatible formatting |
 
 **Rationale**: Different applications interpret pasted HTML differently. Google Docs ignores many CSS classes but respects inline styles. Word recognizes special `mso-*` CSS properties for better fidelity.
@@ -629,4 +630,116 @@ src/core/
 - ~~Should users be able to manually select the input format if auto-detection is wrong?~~ **No** - focus on making detection heuristics robust. Manual override adds UI complexity without proportional benefit.
 - ~~Should we support additional targets (Notion, Slack, etc.) in the future?~~ **Yes** - Slack and Microsoft Teams are planned future targets. The target-specific styling architecture should accommodate additional targets easily.
 - ~~For Raycast, how do we write rich HTML to macOS clipboard?~~ **Already solved** - the existing Raycast extension writes HTML to clipboard; same approach applies.
+
+## 13. ⏳ Planned: Slack Output Format (mrkdwn)
+
+### Overview
+Slack uses a custom markup language called **mrkdwn** that differs significantly from standard Markdown. Unlike other rich text targets (Google Docs, Word) which accept HTML paste, Slack requires text formatted in mrkdwn syntax for reliable formatting.
+
+**Key insight**: Slack is a **text-to-text** conversion target, not a text-to-HTML target. This follows the same pattern as Org-mode output.
+
+### Slack mrkdwn Syntax Reference
+
+| Feature | Standard Markdown | Slack mrkdwn | Notes |
+|---------|-------------------|--------------|-------|
+| **Bold** | `**text**` | `*text*` | Single asterisk (conflict!) |
+| **Italic** | `*text*` or `_text_` | `_text_` | Underscore only |
+| **Strikethrough** | `~~text~~` | `~text~` | Single tilde |
+| **Inline code** | `` `code` `` | `` `code` `` | Same ✓ |
+| **Code block** | ` ``` ` | ` ``` ` | Same ✓ |
+| **Links** | `[text](url)` | `text (url)` | See note below |
+| **Blockquote** | `> text` | `>text` | No space after `>` |
+| **Lists** | `- item` | `- item` | Mimicked with text, not semantic |
+| **Headers** | `# Heading` | ❌ None | Must downgrade to bold |
+| **Tables** | GFM pipe tables | ❌ None | Must render as code block |
+| **Images** | `![alt](url)` | ❌ None | Not supported inline |
+
+### Required Character Escaping
+Slack uses `&`, `<`, and `>` as control characters. They must be escaped:
+
+| Character | Escaped Form |
+|-----------|--------------|
+| `&` | `&amp;` |
+| `<` | `&lt;` |
+| `>` | `&gt;` |
+
+**Note**: Do not HTML-encode the entire text—only these specific characters need escaping.
+
+### Conversion Tradeoffs (Accepted Limitations)
+
+#### 1. Headers → Bold Text
+Slack has no header syntax. Convert to bold:
+```
+# Main Heading     →  *Main Heading*
+## Subheading      →  *Subheading*
+```
+
+#### 2. Tables → Code Block
+GFM tables cannot be rendered semantically. Wrap in code block for readability:
+```
+| Name  | Age |          →    ```
+|-------|-----|          →    | Name  | Age |
+| Alice | 30  |          →    |-------|-----|
+                         →    | Alice | 30  |
+                         →    ```
+```
+
+#### 3. Links Cannot Have Custom Text (User Paste Limitation)
+The `<url|text>` syntax only works via Slack's API (bots, webhooks). For user-pasted text, URLs auto-link but custom link text is not supported. Output format:
+```
+[Click here](https://example.com)  →  Click here (https://example.com)
+[Example](https://example.com)     →  https://example.com  (if text matches domain)
+```
+
+**Note**: Raw URLs like `https://example.com` auto-link when pasted.
+
+#### 4. Nested/Combined Formatting
+Slack has limited support for nested formatting. Keep it simple:
+```
+**_bold italic_**  →  *_bold italic_*  (may not render correctly)
+```
+
+#### 5. Images Dropped
+Inline images cannot be rendered. Convert to link:
+```
+![Screenshot](url)  →  <url|Screenshot (image)>
+```
+
+### Architecture
+
+Follow the same pattern as `md-to-org.ts`:
+
+```
+Markdown → remark-parse → mdast → toSlack() → mrkdwn text
+```
+
+#### New Files
+```
+src/core/
+├── md-to-slack.ts        # NEW: Markdown → Slack mrkdwn
+├── slack-stringify.ts    # NEW: mdast → mrkdwn serializer
+```
+
+#### Target Registration
+Add `'slack'` to `HtmlTarget` type (even though it outputs text, not HTML) for UI consistency with the target selector dropdown.
+
+### Why Not HTML?
+
+Slack's HTML paste behavior is:
+- **Inconsistent**: Desktop app vs. web app handle HTML differently
+- **Undocumented**: No official API docs on paste HTML support
+- **Unreliable**: Formatting often stripped or mangled
+
+mrkdwn text output is the **only reliable** way to get formatted text into Slack.
+
+### Open Questions
+- Should numbered lists use `1.` syntax or convert to bullets? (Slack renders both similarly)
+- Should we preserve raw URLs as-is or wrap them in `<url>` syntax?
+- How should we handle horizontal rules (`---`)? Slack has no equivalent.
+
+### Testing Strategy
+
+1. **Unit tests**: Test each Markdown construct → mrkdwn conversion
+2. **Manual paste testing**: Copy mrkdwn output and paste into Slack to verify rendering
+3. **Test fixtures**: Create paired input/expected-output files like other converters
 
