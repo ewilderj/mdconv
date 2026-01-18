@@ -1,5 +1,15 @@
 # Markdown Converter Changelog
 
+## [1.2.0] - 2026-01-17
+
+- **Bidirectional conversion**: Three new commands to convert Markdown/Org to rich text
+  - "Convert Clipboard to HTML" - generic HTML output
+  - "Convert Clipboard to Google Docs" - optimized for Google Docs paste
+  - "Convert Clipboard to Word 365" - optimized for Word paste
+- **Org-mode output**: "Convert Clipboard to Org" command for Org-mode users
+- **Auto-detection**: Automatically detects Markdown vs Org-mode vs plain text input
+- Improved Word code block spacing and font consistency
+
 ## [1.1.0] - 2026-01-03
 
 - GFM-style table conversion from Word and Google Docs

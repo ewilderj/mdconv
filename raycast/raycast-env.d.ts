@@ -20,6 +20,12 @@ declare namespace Preferences {
   export type ConvertClipboard = ExtensionPreferences & {}
   /** Preferences accessible in the `convert-clipboard-org` command */
   export type ConvertClipboardOrg = ExtensionPreferences & {}
+  /** Preferences accessible in the `convert-to-html` command */
+  export type ConvertToHtml = ExtensionPreferences & {}
+  /** Preferences accessible in the `convert-to-google-docs` command */
+  export type ConvertToGoogleDocs = ExtensionPreferences & {}
+  /** Preferences accessible in the `convert-to-word` command */
+  export type ConvertToWord = ExtensionPreferences & {}
 }
 
 declare namespace Arguments {
@@ -27,5 +33,11 @@ declare namespace Arguments {
   export type ConvertClipboard = {}
   /** Arguments passed to the `convert-clipboard-org` command */
   export type ConvertClipboardOrg = {}
+  /** Arguments passed to the `convert-to-html` command */
+  export type ConvertToHtml = {}
+  /** Arguments passed to the `convert-to-google-docs` command */
+  export type ConvertToGoogleDocs = {}
+  /** Arguments passed to the `convert-to-word` command */
+  export type ConvertToWord = {}
 }
 

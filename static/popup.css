@@ -44,6 +44,43 @@ header h1 {
   line-height: 1.4;
 }
 
+.mode-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.mode-label {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1c2333;
+}
+
+.flip-button {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  background: #e8ecf4;
+  color: #4f5d78;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flip-button:hover {
+  background: #d0d8ea;
+  color: #2f6fed;
+}
+
+.hidden {
+  display: none !important;
+}
+
 .controls {
   display: flex;
   gap: 0.75rem;
