@@ -1,5 +1,13 @@
 # Product Requirements Document – Markdown Clipboard Converter
 
+> **Document Status**: Last updated January 2026 for v1.2.x release
+> 
+> **Implementation Status**:
+> - ✅ Chrome/Firefox browser extensions (v1.2.1 published)
+> - ✅ Org-mode output format (Section 11)
+> - ✅ Bidirectional rich text conversion (Section 12)
+> - ⏳ Raycast extension (Store submission in review - PR #24129)
+
 ## 1. Summary
 A multi-platform clipboard converter that enables bidirectional conversion between rich text and plain text formats. Initially delivered as a Chrome/Edge browser extension, with Raycast integration for native macOS workflow.
 
@@ -44,7 +52,7 @@ Primary use cases:
 - _As a_ content creator, _I want_ the extension to copy the generated Markdown back to my clipboard automatically _so that_ I can share it in chat or commit messages.
 - _As a_ busy professional, _I want_ visual feedback when using the context menu _so that_ I know the conversion succeeded without having to test-paste.
 
-### Raycast Extension (In Development)
+### Raycast Extension
 - _As a_ macOS power user, _I want_ to convert clipboard content via Raycast commands _so that_ I can integrate Markdown conversion into my existing workflow automation.
 - _As a_ developer using multiple applications, _I want_ to convert rich text from any macOS app _so that_ I can quickly paste clean Markdown into terminal-based tools or editors.
 
@@ -159,10 +167,15 @@ The "M" mnemonic is chosen for "Markdown" - intuitive and memorable.
 - Toast injection into page: Requires content script coordination and may fail on restricted pages
 - Sound feedback: Accessibility concerns and user preference variability
 
-### Raycast Extension (In Development)
+### Raycast Extension
 11. **Native clipboard access** reads rich HTML content from macOS clipboard via `pbpaste`.
-12. **Raycast command interface** provides "Convert Clipboard to Markdown" command with preference controls.
-13. **Status messaging** communicates success or actionable errors through Raycast toast notifications.
+12. **Raycast command interface** provides five commands:
+    - "Convert Clipboard to Markdown" - rich text → Markdown
+    - "Convert Clipboard to Org" - rich text → Org-mode
+    - "Convert Clipboard to HTML" - Markdown/Org → generic HTML rich text
+    - "Convert Clipboard to Google Docs" - Markdown/Org → Google Docs optimized rich text
+    - "Convert Clipboard to Word 365" - Markdown/Org → Microsoft Word optimized rich text
+13. **Status messaging** communicates success or actionable errors through Raycast HUD notifications.
 
 ## 6. Non-Functional Requirements
 - **Performance**: Conversion should complete within 200 ms for typical clipboard payloads (<200 KB HTML).
@@ -180,15 +193,15 @@ The "M" mnemonic is chosen for "Markdown" - intuitive and memorable.
 ## 8. Release Plan
 
 ### Browser Extension
-1. **Alpha (internal)**: Validate clipboard read/write permissions and Markdown fidelity with core workflows.
-2. **Beta (friendly users)**: Gather feedback on formatting accuracy and UI clarity.
-3. **1.0 Launch**: Publish to Chrome Web Store with production branding and documentation.
+1. ~~**Alpha (internal)**: Validate clipboard read/write permissions and Markdown fidelity with core workflows.~~ ✅ Complete
+2. ~~**Beta (friendly users)**: Gather feedback on formatting accuracy and UI clarity.~~ ✅ Complete
+3. ~~**1.0 Launch**: Publish to Chrome Web Store with production branding and documentation.~~ ✅ Complete (v1.2.1 current)
 
 ### Raycast Extension
-1. **Development Phase**: Complete shared architecture refactor and basic clipboard conversion workflow.
-2. **Alpha Testing**: Internal validation of macOS clipboard integration and Raycast command interface.
-3. **Beta Release**: Refinement based on usage patterns and feedback from Raycast community.
-4. **Store Submission**: Publish to Raycast Store following their review guidelines.
+1. ~~**Development Phase**: Complete shared architecture refactor and basic clipboard conversion workflow.~~ ✅ Complete
+2. ~~**Alpha Testing**: Internal validation of macOS clipboard integration and Raycast command interface.~~ ✅ Complete
+3. ~~**Beta Release**: Refinement based on usage patterns and feedback from Raycast community.~~ ✅ Complete
+4. **Store Submission**: Publish to Raycast Store following their review guidelines. ⏳ In review (PR #24129)
 
 ## 9. Risks & Mitigations
 
@@ -206,16 +219,18 @@ The "M" mnemonic is chosen for "Markdown" - intuitive and memorable.
 - **Platform adoption uncertainty**: Raycast user base may have different expectations than browser extension users. Gather early feedback to validate product-market fit.
 
 ## 10. Open Questions
-- Should we offer additional output formats (e.g., HTML → JSON) across both platforms?
-- How should platform-specific preferences be synchronized or kept separate?
+- ~~Should we offer additional output formats (e.g., HTML → JSON) across both platforms?~~ **Resolved**: Added Org-mode output format and bidirectional rich text conversion
+- ~~How should platform-specific preferences be synchronized or kept separate?~~ **Resolved**: Kept separate; each platform maintains its own preferences appropriate to its UX
 - Do we need advanced configuration (e.g., custom Turndown rules) in v1 or later versions?
 - Should the Raycast extension include file-based conversion in addition to clipboard workflow?
-- How can we maintain feature parity between platforms while respecting their unique interaction patterns?
+- ~~How can we maintain feature parity between platforms while respecting their unique interaction patterns?~~ **Resolved**: Both platforms support the same 5 conversions (MD→, Org→, →HTML, →Docs, →Word) with platform-appropriate UI
 - Should we provide a user option to force table header detection when source HTML lacks `<th>` elements?
 
 ---
 
-## 11. Future Feature: Org-mode Output Format
+## 11. ✅ Implemented: Org-mode Output Format
+
+**Status: Fully implemented in v1.2.0**
 
 ### Summary
 Add Org-mode as an alternative output format alongside Markdown. Org-mode is the native format for Emacs org-mode users and offers similar structured text capabilities. This feature provides explicit Org-specific commands and UI controls rather than a global preference, keeping Markdown workflows unchanged.
@@ -354,7 +369,9 @@ src/core/
 
 ---
 
-## 12. Future Feature: Rich Text Output (Reverse Conversion)
+## 12. ✅ Implemented: Rich Text Output (Reverse Conversion)
+
+**Status: Fully implemented in v1.2.0**
 
 ### Summary
 Add the ability to convert plain text formats (Markdown, Org-mode, or plain text) into rich HTML suitable for pasting into Google Docs, Microsoft Word, and other rich text editors. This completes the bidirectional conversion story: users can now go from rich text → Markdown AND from Markdown → rich text.
