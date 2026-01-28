@@ -12,8 +12,7 @@ A multi-platform clipboard converter that transforms rich text into polished Mar
 
 ### Raycast extension
 
-There is already a well-featured Raycast Markdown converted, [Paste to Markdown](https://www.raycast.com/weicodes/paste-to-markdown), from [@wei](https://github.com/wei). While we figure out how to collaborate, I probably won't proceed with publishing my
-Raycast integration. However, you can install it locally as a Raycast developer using `npm run dev:raycast`.
+There is already a well-featured Raycast Markdown converter, [Paste to Markdown](https://www.raycast.com/weicodes/paste-to-markdown). Until my integration is approved by Raycast, please use theirs. We've agreed there's likely enough room for two in the Raycast store as we're taking different approaches. You can install mine locally as a Raycast developer using `npm run dev:raycast`.
 
 ## Features
 
