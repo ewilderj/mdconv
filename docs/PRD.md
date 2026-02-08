@@ -8,7 +8,7 @@
 > - ✅ Bidirectional rich text conversion (Section 12)
 > - ✅ Raycast extension (Store submission in review - PR #24129)
 > - ✅ Slack mrkdwn output (Section 13)
-> - 💡 Safari extension (Section 14 - proposed, not started)
+> - � Safari extension (Section 14 - evaluated, deferred: Xcode/App Store overhead outweighs benefit)
 
 ## 1. Summary
 A multi-platform clipboard converter that enables bidirectional conversion between rich text and plain text formats. Initially delivered as a Chrome/Edge browser extension, with Raycast integration for native macOS workflow.
@@ -746,7 +746,9 @@ mrkdwn text output is the **only reliable** way to get formatted text into Slack
 
 ---
 
-## 14. 💡 Proposed: Safari Extension
+## 14. � Deferred: Safari Extension
+
+> **Status**: Evaluated February 2026 — deferred. The Xcode packaging/App Store distribution overhead, clipboard HTML sanitization risk, and $99/year Apple Developer cost aren't justified given Raycast covers macOS power users and Chrome/Firefox/Edge cover the browser side. Spec preserved below for future reference.
 
 ### Overview
 
