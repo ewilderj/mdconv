@@ -1,14 +1,9 @@
-import { Clipboard, showHUD, getPreferenceValues } from "@raycast/api";
+import { Clipboard, showHUD } from "@raycast/api";
 import { raycastConverter } from "./raycast-converter.js";
-import { ImageHandlingMode } from "../../core/converter.js";
 
 export default async function ConvertClipboard() {
-  const preferences = getPreferenceValues<{ imageHandling: ImageHandlingMode }>();
-
   try {
-    const result = await raycastConverter.convertFromClipboard({
-      imageHandling: preferences.imageHandling
-    });
+    const result = await raycastConverter.convertFromClipboard();
 
     if (result.trim()) {
       await Clipboard.copy(result);

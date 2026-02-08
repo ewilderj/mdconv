@@ -1,5 +1,25 @@
-# Build output
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+
+# build output
 dist/
 
-# Dependencies
-node_modules/
+# Raycast auto-generated files
+raycast-env.d.ts
+
+# Shared source files copied by scripts/prepare-raycast-build.mjs
+src/core/
+src/types/
+src/adapters/
+src/convert-clipboard.tsx
+src/convert-clipboard-org.tsx
+src/convert-to-html.tsx
+src/convert-to-google-docs.tsx
+src/convert-to-word.tsx
+src/convert-to-slack.tsx
+src/raycast-converter.ts
+
+# misc
+.DS_Store

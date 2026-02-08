@@ -62,30 +62,7 @@
       "mode": "no-view"
     }
   ],
-  "preferences": [
-    {
-      "name": "imageHandling",
-      "type": "dropdown",
-      "required": false,
-      "title": "Image Handling",
-      "description": "How to handle images during conversion",
-      "default": "preserve",
-      "data": [
-        {
-          "title": "Preserve all images",
-          "value": "preserve"
-        },
-        {
-          "title": "Preserve external images only",
-          "value": "preserve-external-only"
-        },
-        {
-          "title": "Remove all images",
-          "value": "remove"
-        }
-      ]
-    }
-  ],
+  "preferences": [],
   "dependencies": {
     "@raycast/api": "^1.83.1",
     "@raycast/utils": "^1.17.0",
