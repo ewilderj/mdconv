@@ -1,6 +1,6 @@
 # Markdown Clipboard Converter
 
-A multi-platform clipboard converter that transforms rich text into polished Markdown. Available as a Chrome/Edge/Firefox browser extension, with Raycast integration in development.
+A multi-platform clipboard converter for bidirectional conversion between rich text and Markdown, Org-mode, and Slack formats. Available as a Chrome/Edge/Firefox browser extension and a Raycast extension for macOS.
 
 **Primary Platform: Browser Extension** – Paste formatted content from Microsoft Word, Google Docs, or the web, preview the converted Markdown instantly, and copy it back to your clipboard in a single click.
 
@@ -12,7 +12,7 @@ A multi-platform clipboard converter that transforms rich text into polished Mar
 
 ### Raycast extension
 
-There is already a well-featured Raycast Markdown converter, [Paste to Markdown](https://www.raycast.com/weicodes/paste-to-markdown). Until my integration is approved by Raycast, please use theirs. We've agreed there's likely enough room for two in the Raycast store as we're taking different approaches. You can install mine locally as a Raycast developer using `npm run dev:raycast`.
+The Raycast extension provides six commands for bidirectional clipboard conversion on macOS. Install locally as a Raycast developer with `npm run dev:raycast`, or once published, from the [Raycast Store](https://www.raycast.com).
 
 ## Features
 
@@ -46,15 +46,22 @@ There is already a well-featured Raycast Markdown converter, [Paste to Markdown]
 
 > **Clipboard permissions**: Chrome will prompt for clipboard permissions when first reading or writing. Accept the prompt so the extension can function correctly.
 
-### Raycast Extension (pending review by Raycast)
+### Raycast Extension
 
-A native Raycast command for clipboard conversion, on macOS only:
+Six native Raycast commands for clipboard conversion on macOS:
 
-1. Copy formatted content from any application (Word, Google Docs, web pages, etc.)
-2. Open Raycast and run "Convert Clipboard to Markdown"
-3. Converted Markdown is automatically copied back to your clipboard
+| Command | Direction |
+|---------|-----------|
+| Convert Clipboard to Markdown | Rich text → Markdown |
+| Convert Clipboard to Org | Rich text → Org-mode |
+| Convert Clipboard to HTML | Markdown/Org → HTML |
+| Convert Clipboard to Google Docs | Markdown/Org → Google Docs |
+| Convert Clipboard to Word 365 | Markdown/Org → Word |
+| Convert Clipboard to Slack | Markdown/Org → Slack mrkdwn |
 
-![Raycast usage of Markdown Clipboard Converter](docs/screencast.gif)
+1. Copy content from any application
+2. Run the appropriate command in Raycast
+3. Converted output is automatically copied back to your clipboard
 
 ## For org users
 

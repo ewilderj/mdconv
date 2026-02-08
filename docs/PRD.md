@@ -6,8 +6,8 @@
 > - ✅ Chrome/Firefox browser extensions (v1.2.1 published)
 > - ✅ Org-mode output format (Section 11)
 > - ✅ Bidirectional rich text conversion (Section 12)
-> - ⏳ Raycast extension (Store submission in review - PR #24129)
-> - ⏳ Slack mrkdwn output (Section 13 - in design)
+> - ✅ Raycast extension (Store submission in review - PR #24129)
+> - ✅ Slack mrkdwn output (Section 13)
 
 ## 1. Summary
 A multi-platform clipboard converter that enables bidirectional conversion between rich text and plain text formats. Initially delivered as a Chrome/Edge browser extension, with Raycast integration for native macOS workflow.
@@ -72,7 +72,7 @@ Primary use cases:
 1. **HTML-to-Markdown conversion** using Turndown with custom rules for Word, Google Docs, and web content normalization.
 2. **Word normalization** upgrades detected headings, monospace paragraphs, and bold spans so the resulting Markdown preserves intent.
 3. **Auto-copy on success** writes the newly generated Markdown back to the clipboard immediately after conversion.
-4. **Image handling options** allow users to preserve, filter, or remove images during conversion.
+4. **Image preservation** preserves inline images during conversion (including images in table cells).
 5. **Table conversion** transforms HTML tables into GFM (GitHub Flavored Markdown) table syntax via the `turndown-plugin-gfm` tables plugin.
 
 #### Table Conversion Details
@@ -170,12 +170,13 @@ The "M" mnemonic is chosen for "Markdown" - intuitive and memorable.
 
 ### Raycast Extension
 11. **Native clipboard access** reads rich HTML content from macOS clipboard via `pbpaste`.
-12. **Raycast command interface** provides five commands:
+12. **Raycast command interface** provides six commands:
     - "Convert Clipboard to Markdown" - rich text → Markdown
     - "Convert Clipboard to Org" - rich text → Org-mode
     - "Convert Clipboard to HTML" - Markdown/Org → generic HTML rich text
     - "Convert Clipboard to Google Docs" - Markdown/Org → Google Docs optimized rich text
     - "Convert Clipboard to Word 365" - Markdown/Org → Microsoft Word optimized rich text
+    - "Convert Clipboard to Slack" - Markdown/Org → Slack mrkdwn format
 13. **Status messaging** communicates success or actionable errors through Raycast HUD notifications.
 
 ## 6. Non-Functional Requirements
@@ -224,7 +225,7 @@ The "M" mnemonic is chosen for "Markdown" - intuitive and memorable.
 - ~~How should platform-specific preferences be synchronized or kept separate?~~ **Resolved**: Kept separate; each platform maintains its own preferences appropriate to its UX
 - Do we need advanced configuration (e.g., custom Turndown rules) in v1 or later versions?
 - Should the Raycast extension include file-based conversion in addition to clipboard workflow?
-- ~~How can we maintain feature parity between platforms while respecting their unique interaction patterns?~~ **Resolved**: Both platforms support the same 5 conversions (MD→, Org→, →HTML, →Docs, →Word) with platform-appropriate UI
+- ~~How can we maintain feature parity between platforms while respecting their unique interaction patterns?~~ **Resolved**: Both platforms support the same 6 conversions (MD→, Org→, →HTML, →Docs, →Word, →Slack) with platform-appropriate UI
 - Should we provide a user option to force table header detection when source HTML lacks `<th>` elements?
 
 ---
@@ -274,7 +275,7 @@ The output format is selected **per-action** rather than as a global preference:
 1. **Separate command** for Org conversion:
    - "Convert Clipboard to Markdown" (existing)
    - "Convert Clipboard to Org" (new)
-2. Each command uses the same image handling preference
+2. Each command uses the shared conversion pipeline
 3. Both show HUD notification on success
 
 ### Technical Approach
@@ -614,10 +615,9 @@ src/core/
 - Acceptable for the feature value provided
 
 ### Raycast Extension
-1. **New command**: "Convert Clipboard to Rich Text"
-2. **Preference**: Target application (HTML / Google Docs / Word)
-3. Auto-detects input format (Markdown, Org, plain text)
-4. Writes rich HTML to clipboard via `pbcopy` with appropriate MIME type
+1. **Separate commands**: Six commands total — two for rich text → plain text, four for plain text → rich text
+2. Auto-detects input format (Markdown, Org, plain text)
+3. Writes converted content to clipboard via platform APIs
 
 ### Risks & Mitigations
 - **Clipboard API browser support**: `ClipboardItem` is well-supported in Chrome 76+. Firefox support may be limited - document in HELP.md.
@@ -631,7 +631,7 @@ src/core/
 - ~~Should we support additional targets (Notion, Slack, etc.) in the future?~~ **Yes** - Slack and Microsoft Teams are planned future targets. The target-specific styling architecture should accommodate additional targets easily.
 - ~~For Raycast, how do we write rich HTML to macOS clipboard?~~ **Already solved** - the existing Raycast extension writes HTML to clipboard; same approach applies.
 
-## 13. ⏳ Planned: Slack Output Format (mrkdwn)
+## 13. ✅ Implemented: Slack Output Format (mrkdwn)
 
 ### Overview
 Slack uses a custom markup language called **mrkdwn** that differs significantly from standard Markdown. Unlike other rich text targets (Google Docs, Word) which accept HTML paste, Slack requires text formatted in mrkdwn syntax for reliable formatting.

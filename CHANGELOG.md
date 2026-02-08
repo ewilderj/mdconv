@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Org-mode output**: Convert clipboard content to Org-mode format (in addition to Markdown)
 - **Org-mode input**: Convert Org-mode documents to styled HTML for rich text paste
 - **Target-specific styling**: Optimized HTML output for Word 365, Google Docs, or generic HTML
-- **Raycast commands**: Three new commands for rich text output - "Convert to HTML", "Convert to Google Docs", "Convert to Word 365"
+- **Raycast commands**: Four new commands for rich text output - "Convert to HTML", "Convert to Google Docs", "Convert to Word 365", "Convert to Slack"
 - **Mode flip UI**: Toggle between "Rich Text → Markdown" and "Markdown → Rich Text" in browser extensions
 
 ### Technical

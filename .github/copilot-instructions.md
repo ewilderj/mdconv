@@ -3,7 +3,7 @@
 ## Project snapshot
 - Multi-platform Markdown converter with a Chrome extension and a Raycast command set (~80% code reuse).
 - Shared conversion logic lives in `src/core` plus platform adapters under `src/platforms/**`.
-- Raycast entry points in `raycast/src/*.tsx` are thin proxies that re-export the shared command implementations in `src/platforms/raycast/`.
+- A prebuild script (`scripts/prepare-raycast-build.mjs`) copies shared source into `raycast/src/` with import path rewriting, so the Raycast extension is self-contained for store publishing.
 - TypeScript 5.x project using ESBuild for Chrome bundles and the Raycast CLI for Raycast builds.
 - Test suite runs with `tsx --test` against fixtures in `test/` (Word, Google Docs, Raycast adapters, etc.).
 
@@ -21,8 +21,8 @@
 
 ## Development guidance
 - Prefer updating shared modules (`src/core/**`, `src/platforms/**`) so both Chrome and Raycast stay in sync.
-- Raycast-specific adapters are in `src/platforms/raycast/adapters/`; update them instead of editing the proxy stubs in `raycast/src/`.
-- Avoid reintroducing filesystem symlinks inside the Raycast project—explicit proxy modules keep TypeScript resolution reliable.
+- Raycast-specific adapters are in `src/platforms/raycast/adapters/`; edit source there, not the generated files in `raycast/src/`.
+- Never edit `raycast/src/` files directly — they are overwritten by the prebuild script on every build.
 - When adding tests, follow the existing fixture-based patterns in `test/` and ensure they pass via `npm test`.
 - Communicate assumptions, keep responses skimmable, and close the loop with build/test verification.
 
