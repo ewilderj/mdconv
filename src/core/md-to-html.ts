@@ -9,7 +9,7 @@ import remarkParse from 'remark-parse';
 import remarkGfm from 'remark-gfm';
 import remarkRehype from 'remark-rehype';
 import rehypeStringify from 'rehype-stringify';
-import type { Root as HastRoot, Element, Text, ElementContent } from 'hast';
+import type { Root as HastRoot, Element, ElementContent } from 'hast';
 import { HtmlTarget, getElementStyle, wrapHtmlForTarget } from './html-targets.js';
 
 /**

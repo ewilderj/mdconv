@@ -110,7 +110,6 @@ export function convertOrgToHtml(org: string, options: OrgToHtmlOptions = {}): s
   const htmlLines: string[] = [];
   
   let inCodeBlock = false;
-  let codeBlockLang = '';
   let codeBlockContent: string[] = [];
   let inList = false;
   let listOrdered = false;
@@ -149,8 +148,7 @@ export function convertOrgToHtml(org: string, options: OrgToHtmlOptions = {}): s
     if (/^#\+BEGIN_SRC\s*(\w*)/i.test(line)) {
       flushParagraph();
       flushList();
-      const match = line.match(/^#\+BEGIN_SRC\s*(\w*)/i);
-      codeBlockLang = match?.[1] || '';
+      // Language available via line.match(/^#\+BEGIN_SRC\s*(\w*)/i)?.[1] for future syntax highlighting
       inCodeBlock = true;
       codeBlockContent = [];
       continue;
@@ -210,7 +208,7 @@ export function convertOrgToHtml(org: string, options: OrgToHtmlOptions = {}): s
     }
     
     // Standalone timestamp lines: [2026-01-14 Wed 11:49] or <2026-01-14 Wed>
-    const timestampLineMatch = line.match(/^\s*([\[<]\d{4}-\d{2}-\d{2}( [A-Za-z]{2,3})?( \d{1,2}:\d{2})?[\]>])\s*$/);
+    const timestampLineMatch = line.match(/^\s*([[<]\d{4}-\d{2}-\d{2}( [A-Za-z]{2,3})?( \d{1,2}:\d{2})?[\]>])\s*$/);
     if (timestampLineMatch) {
       flushParagraph();
       flushList();

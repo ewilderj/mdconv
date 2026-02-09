@@ -20,7 +20,7 @@ import { debugConfig } from "./env.js";
  * @param message - Log message content
  * @param data - Optional additional data to include in the log
  */
-export function mdlog(level: LogLevel, component: LogComponent, message: string, data?: any): void {
+export function mdlog(level: LogLevel, component: LogComponent, message: string, data?: unknown): void {
   // Skip debug logs in production/test environments
   if (level === 'debug') {
     if (debugConfig.isTest) return;

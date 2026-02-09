@@ -7,8 +7,12 @@
  * Get the process environment safely across different platforms.
  */
 function getProcessEnv(): Record<string, string | undefined> {
-  return (typeof globalThis !== 'undefined' && 
-          (globalThis as any).process?.env) || {};
+  if (typeof globalThis !== 'undefined') {
+    const g = globalThis as Record<string, unknown>;
+    const proc = g.process as { env: Record<string, string | undefined> } | undefined;
+    if (proc?.env) return proc.env;
+  }
+  return {};
 }
 
 /**
@@ -33,7 +37,7 @@ export const debugConfig = {
  * System locale information for clipboard operations.
  * Re-evaluates environment on each access for test compatibility.
  */
-const localeConfig = {
+export const localeConfig = {
   /** Current LANG setting */
   get lang(): string | undefined { return getProcessEnv().LANG; },
   

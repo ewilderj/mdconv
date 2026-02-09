@@ -17,10 +17,11 @@ export type DetectedFormat = 'markdown' | 'org' | 'plain';
 /**
  * Counts pattern matches in text, returning the number of unique matches.
  */
-function countMatches(text: string, pattern: RegExp): number {
-  const matches = text.match(pattern);
-  return matches ? matches.length : 0;
-}
+// Utility available for future scoring refinements
+// function countMatches(text: string, pattern: RegExp): number {
+//   const matches = text.match(pattern);
+//   return matches ? matches.length : 0;
+// }
 
 /**
  * Detects the input format of text content using a scoring system.
@@ -98,7 +99,7 @@ export function detectInputFormat(text: string): DetectedFormat {
   if (/^\d+\. /m.test(text)) markdownScore += 3;
   
   // Unordered lists with -, *, or + (ambiguous with Org * but common in MD)
-  if (/^[-*+] [^\[]/m.test(text)) markdownScore += 2;
+  if (/^[-*+] [^[]/m.test(text)) markdownScore += 2;
   
   // Single asterisk italic: *text* (Org uses /text/)
   // Low confidence since could be interpreted as Org bold
@@ -116,7 +117,7 @@ export function detectInputFormat(text: string): DetectedFormat {
   if (/:[a-zA-Z0-9_@#%]+(?::[a-zA-Z0-9_@#%]+)*:\s*$/m.test(text)) orgScore += 5;
   
   // Org timestamps: [2026-01-14 Wed] or <2026-01-14 Wed>
-  if (/[\[<]\d{4}-\d{2}-\d{2}( [A-Za-z]{2,3})?( \d{1,2}:\d{2})?[\]>]/.test(text)) orgScore += 3;
+  if (/[[<]\d{4}-\d{2}-\d{2}( [A-Za-z]{2,3})?( \d{1,2}:\d{2})?[\]>]/.test(text)) orgScore += 3;
 
   // === LOW-CONFIDENCE / AMBIGUOUS PATTERNS (1 point each) ===
   // These appear in both formats but lean one way

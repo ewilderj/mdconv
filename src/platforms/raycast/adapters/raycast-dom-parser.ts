@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { DOMParser, parseHTML } from "linkedom";
 
 import { DOMParserAdapter } from "../../../core/adapters/index.js";
@@ -6,6 +7,9 @@ import { mdlog } from "../../../core/logging.js";
 /**
  * Raycast DOM parser adapter with enhanced HTML parsing.
  * Since jsdom doesn't bundle well in Raycast, we use an enhanced fallback parser.
+ * 
+ * Note: eslint any suppressed — this file implements a manual DOM shim where
+ * typed DOM interfaces don't apply (linkedom returns untyped structures).
  */
 export class RaycastDOMParserAdapter implements DOMParserAdapter {
   parseFromString(html: string, type: string): Document {
@@ -24,7 +28,7 @@ export class RaycastDOMParserAdapter implements DOMParserAdapter {
     }
 
     const parser = new DOMParser();
-    const doc = parser.parseFromString(html, type as any);
+    const doc = parser.parseFromString(html, type as "text/xml");
     return doc as unknown as Document;
     } catch (error) {
       mdlog('error', 'dom-parser', 'linkedom parsing failed', error);
@@ -96,7 +100,7 @@ export class RaycastDOMParserAdapter implements DOMParserAdapter {
           }
           return oldChild;
         },
-        cloneNode: function(deep: boolean = false) {
+        cloneNode: function(deep = false) {
           const clone = createElement(this.tagName);
           clone.innerHTML = this.innerHTML;
           clone.textContent = this.textContent;
@@ -145,8 +149,9 @@ export class RaycastDOMParserAdapter implements DOMParserAdapter {
       },
       createElement: createElement,
       createTextNode: createTextNode,
-      createTreeWalker: (root: any, whatToShow: number) => {
-        let currentNode = root;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      createTreeWalker: (root: any, _whatToShow: number) => {
+        const currentNode = root;
         return {
           currentNode: currentNode,
           nextNode: () => {

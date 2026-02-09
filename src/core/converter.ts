@@ -855,7 +855,7 @@ function extractWordListInfo(paragraph: HTMLElement, commentNodeType: number): {
 
   if (markerSpan) {
     const markerText = markerSpan.textContent ?? "";
-    listType = /^\s*\d+[\.\)]/.test(markerText.trim()) ? "ol" : "ul";
+    listType = /^\s*\d+[.)]/.test(markerText.trim()) ? "ol" : "ul";
   } else {
     listType = detectListTypeFromContent(paragraph.textContent ?? "");
   }
@@ -941,7 +941,7 @@ function detectListTypeFromContent(text: string): "ul" | "ol" | null {
   if (!normalized) {
     return null;
   }
-  if (/^\d+[\.)]/.test(normalized)) {
+  if (/^\d+[.)]/.test(normalized)) {
     return "ol";
   }
   if (/^[•·o\-*]/i.test(normalized)) {
@@ -969,7 +969,7 @@ function removeLeadingListMarkerNodes(element: HTMLElement, listType: "ul" | "ol
   const nodeCtor = document.defaultView?.Node;
   const TEXT_NODE = nodeCtor?.TEXT_NODE ?? 3;
   const ELEMENT_NODE = nodeCtor?.ELEMENT_NODE ?? 1;
-  const orderedPattern = /^\s*\d+[\.)](?:\s+|$)/;
+  const orderedPattern = /^\s*\d+[.)](?:\s+|$)/;
   const bulletPattern = /^\s*[•·o\-*](?:\s+|$)/i;
   const pattern = listType === "ol" ? orderedPattern : bulletPattern;
 
@@ -1378,7 +1378,7 @@ function createTurndownService(imageHandling: ImageHandlingMode = 'preserve'): T
       const isOrdered = element.tagName.toLowerCase() === "ol";
 
       const processedItems = listItems.map((li, index) => {
-        let itemContent = turndownInstance
+        const itemContent = turndownInstance
           .turndown(li.innerHTML)
           .replace(/^\s+/, "")
           .replace(/\s+$/, "")
