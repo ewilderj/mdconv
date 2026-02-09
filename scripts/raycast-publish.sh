@@ -40,6 +40,10 @@ node -e '
   fs.writeFileSync("package.json", JSON.stringify(pkg, null, 2) + "\n");
 '
 
+# Format generated src/ files with Raycast's Prettier config
+echo "==> Formatting source files with Prettier..."
+npx ray lint --fix 2>/dev/null || true
+
 echo "==> Publishing to Raycast Store..."
 PUBLISH_OK=true
 npx @raycast/api@latest publish || PUBLISH_OK=false
