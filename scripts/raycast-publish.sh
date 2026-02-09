@@ -4,10 +4,10 @@
 # This script handles the gymnastics needed because our monorepo layout
 # differs from what the Raycast extensions repo expects:
 #   1. Runs the prebuild to populate raycast/src/ from shared source
-#   2. Temporarily un-ignores the generated src/ files
-#   3. Strips the prebuild script (references parent-relative paths)
+#   2. Un-ignores the generated src/ files and strips the prebuild script
+#   3. Commits the publish-ready state (Raycast CLI requires clean git)
 #   4. Runs `npx @raycast/api@latest publish`
-#   5. Restores .gitignore and package.json to their original state
+#   5. Reverts the publish commit to restore the original state
 #
 # Usage: npm run publish:raycast   (or: bash scripts/raycast-publish.sh)
 
@@ -16,16 +16,18 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 RAYCAST_DIR="$ROOT/raycast"
 
-echo "==> Building Raycast extension (prebuild + compile)..."
+# Ensure we start with a clean working tree
 cd "$ROOT"
+if ! git diff --quiet HEAD; then
+  echo "✗ Working tree is dirty. Please commit or stash your changes first."
+  exit 1
+fi
+
+echo "==> Building Raycast extension (prebuild + compile)..."
 npm run build:raycast
 
 echo "==> Preparing raycast/ for publish..."
 cd "$RAYCAST_DIR"
-
-# Save originals
-cp .gitignore .gitignore.bak
-cp package.json package.json.bak
 
 # Remove src/ entries from .gitignore so publish includes them
 sed -i '' '/^# Shared source files/,/^$/d' .gitignore
@@ -44,17 +46,25 @@ node -e '
 echo "==> Formatting source files with Prettier..."
 npx ray lint --fix 2>/dev/null || true
 
+# Commit the publish-ready state (Raycast CLI requires a clean git tree)
+echo "==> Committing publish-ready state..."
+cd "$ROOT"
+git add -A
+git commit -m "chore: temporary publish-ready state (will be reverted)" --no-verify
+
 echo "==> Publishing to Raycast Store..."
+cd "$RAYCAST_DIR"
 PUBLISH_OK=true
 npx @raycast/api@latest publish || PUBLISH_OK=false
 
-echo "==> Restoring original files..."
-mv .gitignore.bak .gitignore
-mv package.json.bak package.json
+# Revert the temporary publish commit to restore original state
+echo "==> Reverting publish commit..."
+cd "$ROOT"
+git reset --hard HEAD~1
 
 if [ "$PUBLISH_OK" = true ]; then
-  echo "✓ Published successfully. Original files restored."
+  echo "✓ Published successfully. Publish commit reverted."
 else
-  echo "✗ Publish failed. Original files restored. Check errors above."
+  echo "✗ Publish failed. Publish commit reverted. Check errors above."
   exit 1
 fi
