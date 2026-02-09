@@ -218,13 +218,18 @@ Opens extension in Raycast with hot-reload. Search any of the six commands (e.g.
 
 ### Publishing to Raycast Store
 
-The `raycast/` directory is submitted to the [raycast/extensions](https://github.com/raycast/extensions) monorepo:
+Use the publish script which handles all the monorepo gymnastics automatically:
 
-1. Run `npm run build:raycast` to ensure `raycast/src/` is up to date
-2. Copy `raycast/` into the monorepo at `extensions/markdown-converter/`
-3. Commit the generated `src/` files (they must exist for Raycast CI)
-4. Strip the `prebuild` script from `package.json` — the parent `scripts/prepare-raycast-build.mjs` won't exist in that context
-5. Open a PR to `raycast/extensions`
+```bash
+npm run publish:raycast
+```
+
+This script (`scripts/raycast-publish.sh`) does the following:
+1. Runs the prebuild to generate `raycast/src/` from shared source
+2. Temporarily un-ignores the generated `src/` files (they must be committed for Raycast CI)
+3. Strips the `prebuild` script from `package.json` (parent-relative paths won't exist in the monorepo)
+4. Runs `npx @raycast/api@latest publish` to open/update a PR on `raycast/extensions`
+5. Restores `.gitignore` and `package.json` to their original state
 
 ## Development Workflow
 

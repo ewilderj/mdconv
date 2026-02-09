@@ -109,7 +109,7 @@ All screenshots: 1280×800 PNG with 40px background border padding.
 - Raycast CLI docs: https://developers.raycast.com (for command metadata or publish steps)
 - README & PRD in the repo root capture product expectations—update them if behavior changes.
 - **Environment variables:** Documented in `src/core/env.ts` with inline JSDoc
-- **Raycast monorepo publishing:** When copying `raycast/` into the Raycast extensions monorepo, the generated `src/` files (core/, types/, adapters/, command .tsx files) must be committed there. Strip the `prebuild` script from `package.json` since the parent repo's `scripts/prepare-raycast-build.mjs` won't exist in that context.
+- **Raycast monorepo publishing:** Run `npm run publish:raycast` which handles everything automatically via `scripts/raycast-publish.sh` (prebuild, un-ignore src/, strip prebuild script, publish, restore). Never manually copy files to the monorepo.
 - **Raycast changelog:** Always preserve `{PR_MERGE_DATE}` as a literal template variable (it gets substituted during publish)
 - **Store screenshots:** See `scripts/screenshots/README.md` for capture instructions
 

@@ -30,6 +30,7 @@
     "build:raycast": "cd raycast && npm run build",
     "prebuild:raycast": "npm run sync-version",
     "dev:raycast": "cd raycast && npm run dev",
+    "publish:raycast": "bash scripts/raycast-publish.sh",
     "raycast:install": "cd raycast && npm install"
   },
   "keywords": [
