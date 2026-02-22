@@ -50,10 +50,11 @@ echo "==> Formatting source files with Prettier..."
 npx ray lint --fix 2>/dev/null || true
 
 # Commit the publish-ready state (Raycast CLI requires a clean git tree)
+# Use a meaningful message since the Raycast CLI includes it in the PR.
 echo "==> Committing publish-ready state..."
 cd "$ROOT"
 git add -A
-git commit -m "chore: temporary publish-ready state (will be reverted)" --no-verify
+git commit -m "Update markdown-converter extension" --no-verify
 
 echo "==> Publishing to Raycast Store..."
 cd "$RAYCAST_DIR"
