@@ -8,6 +8,7 @@ dist/
 
 # Raycast auto-generated files
 raycast-env.d.ts
+raycast/
 
 # Shared source files copied by scripts/prepare-raycast-build.mjs
 src/core/

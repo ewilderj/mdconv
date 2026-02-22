@@ -33,6 +33,9 @@ cd "$RAYCAST_DIR"
 sed -i '' '/^# Shared source files/,/^$/d' .gitignore
 sed -i '' '/^src\//d' .gitignore
 
+# Remove the raycast/raycast/ subfolder (CLI artifact, not needed in store)
+rm -rf "$RAYCAST_DIR/raycast"
+
 # Strip the prebuild script from package.json (parent paths won't exist in monorepo)
 # Use node for reliable JSON manipulation
 node -e '
