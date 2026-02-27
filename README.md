@@ -12,7 +12,7 @@ A multi-platform clipboard converter for bidirectional conversion between rich t
 
 ### Raycast extension
 
-The Raycast extension provides six commands for bidirectional clipboard conversion on macOS. Install locally as a Raycast developer with `npm run dev:raycast`, or once published, from the [Raycast Store](https://www.raycast.com).
+The Raycast extension provides six commands for bidirectional clipboard conversion on macOS. Install from the [Raycast Store](https://www.raycast.com/ewilderj/markdown-converter).
 
 ## Features
 
