@@ -1,5 +1,10 @@
 # Markdown Converter Changelog
 
+## [Smart Clipboard Detection] - {PR_MERGE_DATE}
+
+- **Smart round-trip**: "Convert to" commands now handle rich text on the clipboard by round-tripping through Markdown first, instead of silently degrading
+- **Descriptive HUD**: Toast messages show the conversion path taken (e.g. "Rich text → Markdown → Google Docs")
+
 ## [Bidirectional Conversion] - {PR_MERGE_DATE}
 
 - **Bidirectional conversion**: Three new commands to convert Markdown/Org to rich text
