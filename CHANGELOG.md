@@ -5,6 +5,18 @@ All notable changes to mdconv will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2026-03-22
+
+### Added
+- **Smart clipboard detection**: Raycast "Convert to X" commands now auto-detect rich text on clipboard, round-trip through Markdown, and convert to the target format in one step
+- **Layout table unwrapping**: Email HTML (Gmail, Outlook, etc.) using tables for layout is now correctly converted — text, links, and formatting are preserved instead of being lost or producing Markdown table artifacts
+
+### Fixed
+- **Email conversion**: Layout tables (border="0", role="presentation") no longer produce broken `| --- |` Markdown delimiters or lose content during conversion
+
+### Technical
+- 228 tests covering new layout table and round-trip conversion paths
+
 ## [1.2.1] - 2026-01-17
 
 ### Fixed
@@ -83,7 +95,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Centralized environment configuration
 - Consistent error handling and logging patterns
 
-[Unreleased]: https://github.com/ewilderj/mdconv/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/ewilderj/mdconv/compare/v1.2.2...HEAD
+[1.2.2]: https://github.com/ewilderj/mdconv/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/ewilderj/mdconv/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/ewilderj/mdconv/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/ewilderj/mdconv/compare/v1.0.1...v1.1.0

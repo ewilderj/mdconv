@@ -119,3 +119,4 @@ All screenshots: 1280×800 PNG with 40px background border padding.
 - **Regular cleanup cycles** remove accumulated complexity and prevent technical debt
 - **Quality gates catch issues**: The 5-point checklist above prevents regression of established best practices
 - **LLM-friendly code**: Consistent naming, simple abstractions, and good documentation pay dividends
+- **DOM API compatibility**: `src/core/` runs on JSDOM (tests), linkedom (Raycast), and native DOM (Chrome). Avoid `HTMLTableElement`-specific APIs (`table.rows`, `row.cells`) — linkedom doesn't implement them. Use `querySelectorAll(":scope > tbody > tr")` etc. instead. Also, linkedom's `getAttribute()` returns the string `"null"` for missing attributes; always guard with `hasAttribute()` first.

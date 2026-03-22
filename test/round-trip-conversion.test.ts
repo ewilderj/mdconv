@@ -208,4 +208,89 @@ describe("Round-trip conversion (HTML → Markdown → target)", () => {
       assert(markdown.includes("Just plain text"), "Should preserve text content");
     });
   });
+
+  describe("Email layout table handling", () => {
+    // HTML email layout tables use border="0", role="presentation", and <th> for layout
+    const emailHtml = `<html><head></head><body>
+      <div><h2>Important heading</h2></div>
+      <div><table border="0" style="width:100%;table-layout:fixed">
+        <tbody><tr role="presentation">
+          <th><div>
+            <table border="0" style="width:100%;border:none">
+              <tbody><tr>
+                <td><img alt="" src="icon.png"></td>
+                <td>View your bill <a href="https://example.com/bill"><strong>online</strong></a></td>
+              </tr></tbody>
+            </table>
+          </div></th>
+        </tr></tbody>
+      </table></div>
+      <div><table border="0" style="width:100%;table-layout:fixed">
+        <tbody><tr role="presentation">
+          <th><div>
+            <table border="0" style="width:100%;border:none">
+              <tbody><tr>
+                <td><img alt="" src="icon2.png"></td>
+                <td>Manage with the <a href="https://example.com/app"><strong>App</strong></a></td>
+              </tr></tbody>
+            </table>
+            <p>Thank you for being a customer.</p>
+          </th>
+        </tr></tbody>
+      </table></div>
+    </body></html>`;
+
+    it("should unwrap layout tables and preserve text content", () => {
+      const md = convertClipboardPayload(emailHtml, undefined, {
+        domParserAdapter: jsdomParser,
+      });
+      assert(md.includes("Important heading"), "Should preserve heading");
+      assert(md.includes("View your bill"), "Should preserve text from layout table cells");
+      assert(md.includes("Manage with the"), "Should preserve text from second layout table");
+      assert(md.includes("Thank you for being a customer"), "Should preserve paragraph content");
+    });
+
+    it("should preserve links from layout tables", () => {
+      const md = convertClipboardPayload(emailHtml, undefined, {
+        domParserAdapter: jsdomParser,
+      });
+      assert(md.includes("[online](https://example.com/bill)") || md.includes("[**online**](https://example.com/bill)"),
+        "Should preserve link URL and text");
+      assert(md.includes("[App](https://example.com/app)") || md.includes("[**App**](https://example.com/app)"),
+        "Should preserve second link");
+    });
+
+    it("should not produce Markdown table delimiters for layout tables", () => {
+      const md = convertClipboardPayload(emailHtml, undefined, {
+        domParserAdapter: jsdomParser,
+      });
+      assert(!md.includes("| ---"), "Should not have pipe-table delimiter droppings");
+      assert(!md.includes("| "), "Should not have stray pipe characters from table structure");
+    });
+
+    it("should produce clean round-trip output for Google Docs target", () => {
+      const md = convertClipboardPayload(emailHtml, undefined, {
+        domParserAdapter: jsdomParser,
+      });
+      const gdocsHtml = convertMarkdownToHtml(md, { target: "google-docs" });
+      assert(gdocsHtml.includes("View your bill"), "Round-trip should preserve text");
+      assert(gdocsHtml.includes("example.com/bill"), "Round-trip should preserve link URLs");
+      assert(!gdocsHtml.includes("| ---"), "Round-trip should not have Markdown artifacts");
+    });
+
+    it("should not unwrap actual data tables", () => {
+      const dataTableHtml = `<html><body>
+        <table>
+          <thead><tr><th>Name</th><th>Age</th></tr></thead>
+          <tbody><tr><td>Alice</td><td>30</td></tr></tbody>
+        </table>
+      </body></html>`;
+      const md = convertClipboardPayload(dataTableHtml, undefined, {
+        domParserAdapter: jsdomParser,
+      });
+      assert(md.includes("|"), "Data table should be preserved as Markdown table");
+      assert(md.includes("Name"), "Data table header should be preserved");
+      assert(md.includes("Alice"), "Data table content should be preserved");
+    });
+  });
 });

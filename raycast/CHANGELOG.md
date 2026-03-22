@@ -2,7 +2,7 @@
 
 ## [Smart Clipboard Detection] - {PR_MERGE_DATE}
 
-- **Smart round-trip**: "Convert to" commands now handle rich text on the clipboard by round-tripping through Markdown first, instead of silently degrading
+- **Smart round-trip**: "Convert to" commands now handle rich text on the clipboard by round-tripping through Markdown first, instead of silently degrading. Copy styled text → run one command → paste clean formatting. Fixes [#26238](https://github.com/raycast/extensions/issues/26238)
 - **Descriptive HUD**: Toast messages show the conversion path taken (e.g. "Rich text → Markdown → Google Docs")
 
 ## [Bidirectional Conversion] - {PR_MERGE_DATE}
