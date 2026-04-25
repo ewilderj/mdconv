@@ -3,11 +3,12 @@
 #
 # This script handles the gymnastics needed because our monorepo layout
 # differs from what the Raycast extensions repo expects:
-#   1. Runs the prebuild to populate raycast/src/ from shared source
-#   2. Un-ignores the generated src/ files and strips the prebuild script
-#   3. Commits the publish-ready state (Raycast CLI requires clean git)
-#   4. Runs `npx @raycast/api@latest publish`
-#   5. Reverts the publish commit to restore the original state
+#   1. Pulls upstream contributions and restores development state
+#   2. Runs the prebuild to populate raycast/src/ from shared source
+#   3. Un-ignores the generated src/ files and strips the prebuild script
+#   4. Commits the publish-ready state (Raycast CLI requires clean git)
+#   5. Runs `npx @raycast/api@latest publish`
+#   6. Reverts the publish commit to restore the original state
 #
 # Usage: npm run publish:raycast   (or: bash scripts/raycast-publish.sh)
 
@@ -23,6 +24,70 @@ if ! git diff --quiet HEAD; then
   exit 1
 fi
 
+# --- Pull upstream contributions from the Raycast store ---
+# The Raycast team may have made changes (lint configs, metadata, etc.) since
+# our last publish. The CLI will refuse to publish if we haven't pulled them.
+# After merging, we restore our development-only files that the publish step
+# strips (src/ gitignore entries, prebuild script) since the store version
+# won't have them.
+echo "==> Pulling upstream contributions..."
+cd "$RAYCAST_DIR"
+CONTRIB_OUTPUT=$(npx @raycast/api@latest pull-contributions 2>&1) || true
+echo "$CONTRIB_OUTPUT"
+
+if echo "$CONTRIB_OUTPUT" | grep -q "some contributions conflict"; then
+  echo ""
+  echo "✗ Contributions have merge conflicts. Resolve them manually:"
+  echo "  1. Edit conflicted files and git add them"
+  echo "  2. Run: git merge --continue"
+  echo "  3. Re-run: npm run publish:raycast"
+  exit 1
+elif echo "$CONTRIB_OUTPUT" | grep -q "pulling new contributions"; then
+  echo "==> Contributions merged. Restoring development state..."
+
+  # Restore src/ entries in .gitignore if missing
+  if ! grep -q "^src/core/" .gitignore; then
+    cat >> .gitignore << 'GITIGNORE_ENTRIES'
+
+# Shared source files copied by scripts/prepare-raycast-build.mjs
+src/core/
+src/types/
+src/adapters/
+src/convert-clipboard.tsx
+src/convert-clipboard-org.tsx
+src/convert-to-html.tsx
+src/convert-to-google-docs.tsx
+src/convert-to-word.tsx
+src/convert-to-slack.tsx
+src/raycast-converter.ts
+GITIGNORE_ENTRIES
+  fi
+
+  # Restore prebuild script in package.json if missing
+  if ! node -e 'const p=JSON.parse(require("fs").readFileSync("package.json","utf8")); process.exit(p.scripts.prebuild ? 0 : 1)' 2>/dev/null; then
+    node -e '
+      const fs = require("fs");
+      const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+      const scripts = {};
+      scripts.prebuild = "node ../scripts/sync-version.mjs && node ../scripts/prepare-raycast-build.mjs";
+      for (const [k, v] of Object.entries(pkg.scripts)) scripts[k] = v;
+      pkg.scripts = scripts;
+      fs.writeFileSync("package.json", JSON.stringify(pkg, null, 2) + "\n");
+    '
+  fi
+
+  # Update deps if upstream changed package.json
+  npm install --silent 2>/dev/null || true
+
+  cd "$ROOT"
+  git add -A
+  git commit -m "chore: pull Raycast contributions and restore dev state" --no-verify
+  echo "✓ Development state restored and committed."
+else
+  echo "✓ No new contributions."
+fi
+
+cd "$ROOT"
 echo "==> Building Raycast extension (prebuild + compile)..."
 npm run build:raycast
 
