@@ -1273,7 +1273,7 @@ function normalizeGoogleDocsHtml(html: string, context: ConversionContext): stri
     convertItalicSpansToEm(doc);
 
     return doc.body.innerHTML;
-  } catch (error) {
+  } catch {
     return html;
   }
 }
@@ -1411,7 +1411,7 @@ function normalizeWordHtml(html: string, context: ConversionContext): string {
     convertItalicSpansToEm(doc);
 
     return doc.body.innerHTML;
-  } catch (error) {
+  } catch {
     return html;
   }
 }
