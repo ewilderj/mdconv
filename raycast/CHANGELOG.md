@@ -6,7 +6,7 @@
 - **Descriptive HUD**: Toast messages show the conversion path taken (e.g. "Rich text → Markdown → Google Docs")
 - **Email layout tables**: Email HTML (Gmail, Outlook, etc.) using tables for layout now converts correctly — text, links, and formatting are preserved instead of producing broken table artifacts
 
-## [Bidirectional Conversion] - {PR_MERGE_DATE}
+## [Bidirectional Conversion] - 2026-02-27
 
 - **Bidirectional conversion**: Three new commands to convert Markdown/Org to rich text
   - "Convert Clipboard to HTML" - generic HTML output
@@ -20,7 +20,7 @@
 - Inline images in table cells are now preserved correctly
 - Smart header detection from bold text in first row
 
-## [Initial Release] - {PR_MERGE_DATE}
+## [Initial Release] - 2026-02-27
 
 - Convert rich text from clipboard to Markdown format
 - Support for Word documents, Google Docs, and web pages
