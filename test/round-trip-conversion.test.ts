@@ -213,10 +213,10 @@ describe("Round-trip conversion (HTML → Markdown → target)", () => {
     // HTML email layout tables use border="0", role="presentation", and <th> for layout
     const emailHtml = `<html><head></head><body>
       <div><h2>Important heading</h2></div>
-      <div><table border="0" style="width:100%;table-layout:fixed">
+      <div><table border="0" cellpadding="0" cellspacing="0" style="width:100%;table-layout:fixed">
         <tbody><tr role="presentation">
           <th><div>
-            <table border="0" style="width:100%;border:none">
+            <table border="0" cellpadding="0" cellspacing="0" style="width:100%;border:none">
               <tbody><tr>
                 <td><img alt="" src="icon.png"></td>
                 <td>View your bill <a href="https://example.com/bill"><strong>online</strong></a></td>
@@ -225,10 +225,10 @@ describe("Round-trip conversion (HTML → Markdown → target)", () => {
           </div></th>
         </tr></tbody>
       </table></div>
-      <div><table border="0" style="width:100%;table-layout:fixed">
+      <div><table border="0" cellpadding="0" cellspacing="0" style="width:100%;table-layout:fixed">
         <tbody><tr role="presentation">
           <th><div>
-            <table border="0" style="width:100%;border:none">
+            <table border="0" cellpadding="0" cellspacing="0" style="width:100%;border:none">
               <tbody><tr>
                 <td><img alt="" src="icon2.png"></td>
                 <td>Manage with the <a href="https://example.com/app"><strong>App</strong></a></td>
