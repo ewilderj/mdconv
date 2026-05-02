@@ -32,8 +32,14 @@ fi
 # won't have them.
 echo "==> Pulling upstream contributions..."
 cd "$RAYCAST_DIR"
-CONTRIB_OUTPUT=$(npx @raycast/api@latest pull-contributions 2>&1) || true
-echo "$CONTRIB_OUTPUT"
+CONTRIB_LOG="$(mktemp)"
+trap 'rm -f "$CONTRIB_LOG"' EXIT
+# Stream output to terminal AND capture to file (preserves stdin for prompts)
+set +e
+npx @raycast/api@latest pull-contributions 2>&1 | tee "$CONTRIB_LOG"
+PULL_EXIT=${PIPESTATUS[0]}
+set -e
+CONTRIB_OUTPUT=$(cat "$CONTRIB_LOG")
 
 if echo "$CONTRIB_OUTPUT" | grep -q "some contributions conflict"; then
   echo ""
