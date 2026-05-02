@@ -85,7 +85,6 @@
     "typescript": "^5.8.2"
   },
   "scripts": {
-    "prebuild": "node ../scripts/sync-version.mjs && node ../scripts/prepare-raycast-build.mjs",
     "build": "ray build -e dist",
     "dev": "ray develop",
     "fix-lint": "ray lint --fix",
