@@ -48,7 +48,7 @@ if echo "$CONTRIB_OUTPUT" | grep -q "some contributions conflict"; then
   echo "  2. Run: git merge --continue"
   echo "  3. Re-run: npm run publish:raycast"
   exit 1
-elif echo "$CONTRIB_OUTPUT" | grep -q "pulling new contributions"; then
+elif ! git diff --quiet HEAD || [ -n "$(git status --porcelain)" ]; then
   echo "==> Contributions merged. Restoring development state..."
 
   # Restore src/ entries in .gitignore if missing
