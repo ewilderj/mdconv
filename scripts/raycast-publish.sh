@@ -89,8 +89,12 @@ GITIGNORE_ENTRIES
 
   cd "$ROOT"
   git add -A
-  git commit -m "chore: pull Raycast contributions and restore dev state" --no-verify
-  echo "✓ Development state restored and committed."
+  if git diff --cached --quiet; then
+    echo "✓ No development state changes needed."
+  else
+    git commit -m "chore: pull Raycast contributions and restore dev state" --no-verify
+    echo "✓ Development state restored and committed."
+  fi
 else
   echo "✓ No new contributions."
 fi
