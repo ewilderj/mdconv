@@ -32,6 +32,7 @@ fi
 # won't have them.
 echo "==> Pulling upstream contributions..."
 cd "$RAYCAST_DIR"
+HEAD_BEFORE=$(git -C "$ROOT" rev-parse HEAD)
 CONTRIB_LOG="$(mktemp)"
 trap 'rm -f "$CONTRIB_LOG"' EXIT
 # Stream output to terminal AND capture to file (preserves stdin for prompts)
@@ -40,6 +41,7 @@ npx @raycast/api@latest pull-contributions 2>&1 | tee "$CONTRIB_LOG"
 PULL_EXIT=${PIPESTATUS[0]}
 set -e
 CONTRIB_OUTPUT=$(cat "$CONTRIB_LOG")
+HEAD_AFTER=$(git -C "$ROOT" rev-parse HEAD)
 
 if echo "$CONTRIB_OUTPUT" | grep -q "some contributions conflict"; then
   echo ""
@@ -48,7 +50,7 @@ if echo "$CONTRIB_OUTPUT" | grep -q "some contributions conflict"; then
   echo "  2. Run: git merge --continue"
   echo "  3. Re-run: npm run publish:raycast"
   exit 1
-elif ! git diff --quiet HEAD || [ -n "$(git status --porcelain)" ]; then
+elif [ "$HEAD_BEFORE" != "$HEAD_AFTER" ] || ! git -C "$ROOT" diff --quiet HEAD || [ -n "$(git -C "$ROOT" status --porcelain)" ]; then
   echo "==> Contributions merged. Restoring development state..."
 
   # Restore src/ entries in .gitignore if missing
