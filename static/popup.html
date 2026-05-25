@@ -37,10 +37,18 @@
         <button id="convertToRichButton" type="button">Convert</button>
       </div>
       
-      <label class="field">
-        <textarea id="output" placeholder="Converted content appears here" readonly></textarea>
-      </label>
       <section id="status" role="status" aria-live="polite"></section>
+
+      <details id="previewDisclosure" class="preview-disclosure">
+        <summary>Show converted output</summary>
+        <div class="preview-body">
+          <p id="previewHint" class="preview-hint hidden">
+            Selecting text here may not preserve formatting — click <strong>Convert</strong> again to recopy.
+          </p>
+          <textarea id="output" class="preview-textarea" placeholder="Converted content appears here" readonly></textarea>
+          <div id="previewRendered" class="preview-rendered hidden"></div>
+        </div>
+      </details>
     </main>
     <footer>
       <a id="helpLink" href="https://github.com/ewilderj/mdconv/blob/main/HELP.md" target="_blank">How to use</a>

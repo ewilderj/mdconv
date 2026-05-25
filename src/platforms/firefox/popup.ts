@@ -36,6 +36,9 @@ type UIRefs = {
   helperText: HTMLElement;
   output: HTMLTextAreaElement;
   status: HTMLElement;
+  previewDisclosure: HTMLDetailsElement;
+  previewRendered: HTMLElement;
+  previewHint: HTMLElement;
 };
 
 const DEBUG_CLIPBOARD_FLAG = "mdconv.debugClipboard";
@@ -128,6 +131,9 @@ function queryUI(): UIRefs | null {
   const helperText = document.getElementById("helperText") as HTMLElement | null;
   const output = document.getElementById("output") as HTMLTextAreaElement | null;
   const status = document.getElementById("status");
+  const previewDisclosure = document.getElementById("previewDisclosure") as HTMLDetailsElement | null;
+  const previewRendered = document.getElementById("previewRendered") as HTMLElement | null;
+  const previewHint = document.getElementById("previewHint") as HTMLElement | null;
 
   // Debug: log which elements are missing
   const missing: string[] = [];
@@ -143,7 +149,10 @@ function queryUI(): UIRefs | null {
   if (!helperText) missing.push('helperText');
   if (!output) missing.push('output');
   if (!status) missing.push('status');
-  
+  if (!previewDisclosure) missing.push('previewDisclosure');
+  if (!previewRendered) missing.push('previewRendered');
+  if (!previewHint) missing.push('previewHint');
+
   if (missing.length > 0) {
     console.error('[mdconv] Missing UI elements:', missing);
     return null;
@@ -161,13 +170,40 @@ function queryUI(): UIRefs | null {
     modeLabel: modeLabel!,
     helperText: helperText!,
     output: output!,
-    status: status!
+    status: status!,
+    previewDisclosure: previewDisclosure!,
+    previewRendered: previewRendered!,
+    previewHint: previewHint!
   };
 }
 
 function setStatus(refs: UIRefs, message: string, tone: Tone = "info") {
   refs.status.textContent = message;
   refs.status.dataset.tone = message ? tone : "";
+}
+
+function showPreviewText(refs: UIRefs, value: string) {
+  refs.output.value = value;
+  refs.output.classList.remove("hidden");
+  refs.previewRendered.classList.add("hidden");
+  refs.previewRendered.innerHTML = "";
+  refs.previewHint.classList.add("hidden");
+}
+
+function showPreviewHtml(refs: UIRefs, html: string) {
+  refs.output.value = "";
+  refs.output.classList.add("hidden");
+  refs.previewRendered.classList.remove("hidden");
+  refs.previewRendered.innerHTML = html;
+  refs.previewHint.classList.remove("hidden");
+}
+
+function clearPreview(refs: UIRefs) {
+  refs.output.value = "";
+  refs.output.classList.remove("hidden");
+  refs.previewRendered.classList.add("hidden");
+  refs.previewRendered.innerHTML = "";
+  refs.previewHint.classList.add("hidden");
 }
 
 async function writeClipboard(text: string) {
@@ -274,8 +310,8 @@ async function presentMarkdown(refs: UIRefs, markdown: string, context: string) 
   const format = refs.formatSelect.value as OutputFormat;
   const output = format === "org" ? convertMarkdownToOrg(markdown) : markdown;
   const formatLabel = format === "org" ? "Org" : "Markdown";
-  
-  refs.output.value = output;
+
+  showPreviewText(refs, output);
   setStatus(refs, `${context}. Copying ${formatLabel} to clipboard…`, "info");
 
   try {
@@ -287,20 +323,39 @@ async function presentMarkdown(refs: UIRefs, markdown: string, context: string) 
 }
 
 async function handleConversion(refs: UIRefs) {
-  setStatus(refs, "Reading clipboard…", "info");
+  // If we already have a previous rich-text input cached, reuse it so the
+  // Convert button doubles as "copy again" without re-reading the clipboard
+  // (which by now contains the markdown we just wrote).
+  let html: string | undefined;
+  let plain: string | undefined;
+  let fromCache = false;
+
+  if (lastRichTextInput && (lastRichTextInput.html || lastRichTextInput.plain)) {
+    html = lastRichTextInput.html;
+    plain = lastRichTextInput.plain;
+    fromCache = true;
+  } else {
+    setStatus(refs, "Reading clipboard…", "info");
+    try {
+      const read = await readClipboardAsHtml();
+      html = read.html;
+      plain = read.plain;
+    } catch (error) {
+      setStatus(refs, "Conversion failed. Please try again.", "error");
+      return;
+    }
+  }
+
   try {
-    const { html, plain } = await readClipboardAsHtml();
-    logClipboardDebug({ source: "clipboard.read", html, plain });
-    
-    // Store input for reconversion when format changes
+    logClipboardDebug({ source: fromCache ? "cache.reuse" : "clipboard.read", html, plain });
     lastRichTextInput = { html, plain };
-    
+
     const markdown = firefoxConverter.convertClipboardPayload(html, plain);
     logClipboardDebug({ source: "clipboard.read -> markdown", markdown });
 
     if (!markdown) {
       setStatus(refs, "No convertible content found on the clipboard.", "error");
-      refs.output.value = "";
+      clearPreview(refs);
       return;
     }
 
@@ -328,7 +383,7 @@ async function handlePasteEvent(refs: UIRefs, event: ClipboardEvent) {
 
       if (!markdown) {
         setStatus(refs, "Clipboard data was empty.", "error");
-        refs.output.value = "";
+        clearPreview(refs);
         return;
       }
 
@@ -340,23 +395,23 @@ async function handlePasteEvent(refs: UIRefs, event: ClipboardEvent) {
       if (markdown) {
         await presentMarkdown(refs, markdown, "Converted pasted text");
       } else {
-        refs.output.value = plain;
+        showPreviewText(refs, plain);
         setStatus(refs, "Pasted plain text (no conversion needed).", "info");
       }
     } else {
       setStatus(refs, "Clipboard data was empty.", "error");
-      refs.output.value = "";
+      clearPreview(refs);
     }
   } else {
     // Markdown → Rich text mode: store and prepare for conversion
     if (plain && plain.trim()) {
       lastPlainTextInput = plain;
-      refs.output.value = plain;
+      showPreviewText(refs, plain);
       const detectedFormat = detectInputFormat(plain);
       setStatus(refs, `Pasted ${getFormatLabel(detectedFormat)}. Click "Convert" to convert to rich text.`, "info");
     } else {
       setStatus(refs, "Clipboard data was empty.", "error");
-      refs.output.value = "";
+      clearPreview(refs);
     }
   }
 }
@@ -401,16 +456,16 @@ async function handleConvertToRichText(refs: UIRefs) {
         // Markdown or plain text
         slackText = convertMarkdownToSlack(plain);
       }
-      
-      refs.output.value = slackText;
-      
+
+      showPreviewText(refs, slackText);
+
       // Write plain text to clipboard (Slack doesn't use HTML paste)
       await writeClipboard(slackText);
-      
+
       setStatus(refs, "Slack mrkdwn copied to clipboard. Paste directly into Slack.", "success");
       return;
     }
-    
+
     // HTML targets (Google Docs, Word, generic HTML)
     let html: string;
     if (detectedFormat === 'plain') {
@@ -421,12 +476,12 @@ async function handleConvertToRichText(refs: UIRefs) {
       // Markdown
       html = convertMarkdownToHtml(plain, { target });
     }
-    
-    refs.output.value = html;
-    
+
+    showPreviewHtml(refs, html);
+
     // Write rich HTML to clipboard
     await writeRichClipboard(html, plain);
-    
+
     const targetLabel = target === 'google-docs' ? 'Google Docs' : 
                         target === 'word' ? 'Word' : 'HTML';
     setStatus(refs, `Rich text copied to clipboard (optimized for ${targetLabel}).`, "success");
@@ -476,7 +531,7 @@ async function init() {
     // Clear stored inputs and output when switching modes
     lastRichTextInput = null;
     lastPlainTextInput = null;
-    refs.output.value = "";
+    clearPreview(refs);
     setStatus(refs, "", "info");
   });
 
@@ -516,7 +571,7 @@ async function init() {
   });
 
   refs.clearButton.addEventListener("click", () => {
-    refs.output.value = "";
+    clearPreview(refs);
     lastRichTextInput = null;
     lastPlainTextInput = null;
     setStatus(refs, "", "info");
