@@ -3,6 +3,7 @@ import { tables } from "turndown-plugin-gfm";
 import { DOMParserAdapter } from "./adapters/index.js";
 import { mdlog } from "./logging.js";
 import { debugConfig } from "./env.js";
+import { convertLatexToUnicode, looksLikeLatex } from "./latex-unicode.js";
 
 /**
  * How to handle images during HTML to Markdown conversion.
@@ -1551,7 +1552,19 @@ function createTurndownService(imageHandling: ImageHandlingMode = 'preserve'): T
         .replace(/[\r\n]+/g, ' ')
         .replace(/\s{2,}/g, ' ')
         .trim();
-      
+
+      // Google Docs equations (Insert > Equation) are pasted as <img> elements
+      // whose alt text carries the original LaTeX source (e.g. "$\rightarrow$").
+      // When the equation is just a single symbol with a direct Unicode
+      // equivalent, use that Unicode text instead of Markdown image syntax so
+      // raw LaTeX doesn't leak into the output.
+      if (looksLikeLatex(alt)) {
+        const { text, complete } = convertLatexToUnicode(alt);
+        if (complete && text) {
+          return text;
+        }
+      }
+
       if (!src) {
         return '';
       }
