@@ -179,3 +179,47 @@ export function convertLatexToUnicode(latex: string): { text: string; complete: 
   const complete = !/\\[a-zA-Z]+/.test(text);
   return { text, complete };
 }
+
+/**
+ * Scans a block of plain text (e.g. Markdown source, or a text node inside
+ * generated HTML) for inline LaTeX math snippets and converts the ones that
+ * fully resolve to Unicode into plain Unicode text, leaving anything that
+ * can't be fully converted untouched.
+ *
+ * This covers the "Markdown → Rich Text" direction of the round trip: users
+ * who type or paste literal LaTeX (e.g. `The result $\rightarrow$ the
+ * answer.`) into their Markdown source get plain Unicode symbols in the
+ * generated rich text instead of raw LaTeX syntax.
+ *
+ * @param text - Plain text potentially containing `$...$`/`$$...$$` math
+ *   spans or bare LaTeX commands (e.g. `\rightarrow`)
+ * @returns The text with fully-convertible LaTeX snippets replaced by Unicode
+ */
+export function convertLatexInText(text: string): string {
+  if (!text || !looksLikeLatex(text)) {
+    return text;
+  }
+
+  // Replace $$...$$ and $...$ math spans first, since they unambiguously
+  // delimit a LaTeX snippet. Only replace when the span actually contains a
+  // LaTeX command (a bare backslash sequence) - plain "$...$" text without
+  // one is far more likely to be currency (e.g. "$5 and $10") than math, so
+  // it's left untouched. Only replace when the conversion is complete;
+  // otherwise leave the original (delimiters included) untouched.
+  let result = text.replace(/\$\$([^$]+)\$\$|\$([^$\n]+)\$/g, (match, doubleDollar, singleDollar) => {
+    const inner = doubleDollar ?? singleDollar;
+    if (!/\\[a-zA-Z]+/.test(inner)) {
+      return match;
+    }
+    const { text: converted, complete } = convertLatexToUnicode(inner);
+    return complete ? converted : match;
+  });
+
+  // Replace any remaining bare LaTeX commands (not wrapped in $...$) that
+  // have a direct Unicode equivalent, e.g. "Plain arrow: \rightarrow here."
+  result = result.replace(/\\([a-zA-Z]+)/g, (match, command: string) => {
+    return command in LATEX_SYMBOL_MAP ? LATEX_SYMBOL_MAP[command] : match;
+  });
+
+  return result;
+}

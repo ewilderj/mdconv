@@ -3,7 +3,8 @@ import { test } from "node:test";
 import { JSDOM } from "jsdom";
 
 import { convertClipboardPayload } from "../src/core/converter.js";
-import { convertLatexToUnicode, looksLikeLatex } from "../src/core/latex-unicode.js";
+import { convertLatexToUnicode, convertLatexInText, looksLikeLatex } from "../src/core/latex-unicode.js";
+import { convertMarkdownToHtml } from "../src/core/md-to-html.js";
 
 const globalsDom = new JSDOM("<!doctype html><html><body></body></html>");
 const globalsWindow = globalsDom.window;
@@ -94,5 +95,66 @@ test("Rich text image equations", async (t) => {
     }).trim();
 
     assert.equal(markdown, "Result  here.");
+  });
+});
+
+test("convertLatexInText", async (t) => {
+  await t.test("converts a dollar-delimited symbol within surrounding text", () => {
+    assert.equal(
+      convertLatexInText("The result $\\rightarrow$ the answer."),
+      "The result → the answer."
+    );
+  });
+
+  await t.test("converts a bare backslash command within surrounding text", () => {
+    assert.equal(convertLatexInText("Plain arrow: \\rightarrow here."), "Plain arrow: → here.");
+  });
+
+  await t.test("leaves incomplete LaTeX (e.g. fractions) untouched", () => {
+    assert.equal(
+      convertLatexInText("Fraction $\\frac{a}{b}$ stays as-is."),
+      "Fraction $\\frac{a}{b}$ stays as-is."
+    );
+  });
+
+  await t.test("does not treat currency amounts as LaTeX", () => {
+    assert.equal(convertLatexInText("Price is $5 and $10 total."), "Price is $5 and $10 total.");
+  });
+
+  await t.test("leaves plain text without LaTeX untouched", () => {
+    assert.equal(convertLatexInText("Just plain text."), "Just plain text.");
+  });
+});
+
+test("Markdown → Rich Text LaTeX conversion", async (t) => {
+  await t.test("converts dollar-delimited LaTeX to Unicode in generated HTML", () => {
+    const html = convertMarkdownToHtml("The result $\\rightarrow$ the answer.", {
+      target: "google-docs",
+    });
+
+    assert.match(html, /The result → the answer\./);
+    assert.doesNotMatch(html, /rightarrow/);
+  });
+
+  await t.test("converts a bare LaTeX command to Unicode in generated HTML", () => {
+    const html = convertMarkdownToHtml("Plain arrow: \\rightarrow here.", {
+      target: "google-docs",
+    });
+
+    assert.match(html, /Plain arrow: → here\./);
+  });
+
+  await t.test("leaves LaTeX inside inline code untouched", () => {
+    const html = convertMarkdownToHtml("Code: `$\\rightarrow$` should stay literal.", {
+      target: "google-docs",
+    });
+
+    assert.match(html, /<code[^>]*>\$\\rightarrow\$<\/code>/);
+  });
+
+  await t.test("leaves currency amounts untouched", () => {
+    const html = convertMarkdownToHtml("Price is $5 and $10 total.", { target: "google-docs" });
+
+    assert.match(html, /Price is \$5 and \$10 total\./);
   });
 });

@@ -9,8 +9,9 @@ import remarkParse from 'remark-parse';
 import remarkGfm from 'remark-gfm';
 import remarkRehype from 'remark-rehype';
 import rehypeStringify from 'rehype-stringify';
-import type { Root as HastRoot, Element, ElementContent } from 'hast';
+import type { Root as HastRoot, Element, ElementContent, Text } from 'hast';
 import { HtmlTarget, getElementStyle, wrapHtmlForTarget } from './html-targets.js';
+import { convertLatexInText } from './latex-unicode.js';
 
 /**
  * Options for Markdown to HTML conversion.
@@ -68,6 +69,7 @@ export function convertMarkdownToHtml(markdown: string, options: MdToHtmlOptions
     .use(remarkParse)
     .use(remarkGfm)
     .use(remarkRehype, { allowDangerousHtml: false })
+    .use(convertLatexTextNodes)
     .use(addTargetStyles, { target })
     .use(rehypeStringify, { allowDangerousHtml: false });
 
@@ -95,6 +97,46 @@ export function convertMarkdownToHtml(markdown: string, options: MdToHtmlOptions
 export function convertPlainTextToHtml(text: string, options: MdToHtmlOptions = {}): string {
   // Treat plain text as Markdown - it's a superset, so this just works
   return convertMarkdownToHtml(text, options);
+}
+
+/**
+ * Rehype plugin that converts inline LaTeX math snippets (e.g. `$\rightarrow$`
+ * or a bare `\rightarrow`) found in text nodes into plain Unicode text.
+ *
+ * This handles the "Markdown → Rich Text" direction of the round trip:
+ * without this, literal LaTeX typed or pasted into Markdown source (for
+ * example, alt text carried over from a Google Docs equation image) would be
+ * passed through untouched into the generated HTML and show up as raw LaTeX
+ * once pasted into Google Docs or Word. Code spans and code blocks are left
+ * untouched, since LaTeX-like text there is intentionally literal.
+ */
+function convertLatexTextNodes() {
+  return (tree: HastRoot) => {
+    visitTextNodes(tree, (node) => {
+      node.value = convertLatexInText(node.value);
+    });
+  };
+}
+
+/**
+ * Recursively visits all text nodes in a hast tree, skipping the contents of
+ * `code` and `pre` elements so literal code is never rewritten.
+ */
+function visitTextNodes(node: HastRoot | ElementContent, visitor: (node: Text) => void): void {
+  if (node.type === 'text') {
+    visitor(node);
+    return;
+  }
+
+  if (node.type === 'element' && (node.tagName === 'code' || node.tagName === 'pre')) {
+    return;
+  }
+
+  if ('children' in node && Array.isArray(node.children)) {
+    for (const child of node.children) {
+      visitTextNodes(child as ElementContent, visitor);
+    }
+  }
 }
 
 /**
